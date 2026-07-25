@@ -7,21 +7,52 @@ const CATEGORIES = [
   "Restaurants",
   "Coffee shops",
   "Pizza",
+  "Bakeries",
+  "Bars",
+  "Fast food",
   "Interior designers",
   "Hair salons",
-  "Bakeries",
+  "Nail salons",
+  "Barbershops",
+  "Spas",
   "Gyms",
+  "Yoga studios",
+  "Dentists",
+  "Chiropractors",
+  "Veterinarians",
+  "Auto repair shops",
+  "Car dealerships",
+  "Real estate agents",
+  "Lawyers",
+  "Accountants",
+  "Plumbers",
+  "Electricians",
+  "HVAC contractors",
+  "Roofers",
+  "Landscapers",
+  "Photographers",
+  "Florists",
+  "Pet groomers",
+  "Daycares",
+  "Dry cleaners",
+  "Tattoo shops",
+  "Jewelry stores",
+  "Furniture stores",
+  "Bookstores",
 ];
 
+const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
+
 const priorityStyle: Record<Lead["priority"], string> = {
-  high: "bg-red-50 text-red-700 border-red-200",
-  medium: "bg-amber-50 text-amber-700 border-amber-200",
-  low: "bg-slate-50 text-slate-500 border-slate-200",
+  high: "border-orange-500 text-orange-400",
+  medium: "border-orange-700 text-orange-600",
+  low: "border-neutral-700 text-neutral-500",
 };
 
 export default function Dashboard() {
   const [category, setCategory] = useState("Restaurants");
-  const [city, setCity] = useState("Montreal");
+  const [address, setAddress] = useState("");
+  const [radiusKm, setRadiusKm] = useState(10);
   const [minRating, setMinRating] = useState(4);
   const [includeNoWebsite, setIncludeNoWebsite] = useState(true);
   const [includeOutdated, setIncludeOutdated] = useState(true);
@@ -43,7 +74,15 @@ export default function Dashboard() {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, city, minRating, includeNoWebsite, includeOutdated }),
+        body: JSON.stringify({
+          category,
+          address,
+          radiusKm,
+          minRating,
+          includeNoWebsite,
+          includeOutdated,
+          maxResults: 50,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search failed");
@@ -93,49 +132,72 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-black text-white font-mono">
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Lead Scout</h1>
-          <p className="text-slate-500 mt-1">
-            Find local businesses and see which ones need a better website.
+        <header className="mb-8 border-b-2 border-orange-500 pb-4">
+          <h1 className="text-3xl font-bold tracking-widest text-orange-500 uppercase">
+            Lead Scout
+          </h1>
+          <p className="text-neutral-400 mt-1">
+            Find local businesses near an address and see which ones need a better website.
           </p>
         </header>
 
         <form
           onSubmit={handleSearch}
-          className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-8"
+          className="bg-neutral-950 border-2 border-orange-600 rounded-none p-6 mb-8"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">
+              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
                 Category
               </label>
-              <select
+              <input
+                list="category-options"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-              >
+                placeholder="e.g. Restaurants, Plumbers..."
+                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+              />
+              <datalist id="category-options">
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                Address
+              </label>
+              <input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="123 Main St, Montreal, QC"
+                required
+                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                Search radius
+              </label>
+              <select
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(Number(e.target.value))}
+                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r} km
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">
-                City
-              </label>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-                placeholder="Montreal"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700 block mb-1">
+              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
                 Minimum rating: {minRating}★
               </label>
               <input
@@ -145,25 +207,27 @@ export default function Dashboard() {
                 step={0.5}
                 value={minRating}
                 onChange={(e) => setMinRating(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-orange-500"
               />
             </div>
           </div>
 
           <div className="flex flex-wrap gap-6 mt-5">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-neutral-300">
               <input
                 type="checkbox"
                 checked={includeNoWebsite}
                 onChange={(e) => setIncludeNoWebsite(e.target.checked)}
+                className="accent-orange-500"
               />
               Businesses without websites
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-neutral-300">
               <input
                 type="checkbox"
                 checked={includeOutdated}
                 onChange={(e) => setIncludeOutdated(e.target.checked)}
+                className="accent-orange-500"
               />
               Businesses with outdated websites
             </label>
@@ -172,76 +236,79 @@ export default function Dashboard() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-5 bg-slate-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-slate-700 disabled:opacity-50"
+            className="mt-6 bg-orange-500 text-black text-sm font-bold uppercase tracking-wide px-6 py-2.5 rounded-none hover:bg-orange-400 disabled:opacity-50"
           >
             {loading ? "Searching…" : "Search"}
           </button>
+          <p className="text-xs text-neutral-500 mt-2">
+            Fetches up to 50 results within the chosen radius, sorted by priority.
+          </p>
         </form>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+          <div className="bg-neutral-950 border-2 border-orange-500 text-orange-400 text-sm px-4 py-3 mb-6">
             {error}
           </div>
         )}
 
         {leads.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 text-sm text-slate-500">
+          <div className="bg-neutral-950 border-2 border-orange-700">
+            <div className="px-6 py-4 border-b border-orange-800 text-sm text-neutral-400 uppercase tracking-wide">
               {leads.length} result{leads.length !== 1 ? "s" : ""}
             </div>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-neutral-800">
               {leads.map((lead) => (
                 <li key={lead.placeId} className="px-6 py-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium">{lead.name}</span>
+                        <span className="font-bold text-white">{lead.name}</span>
                         <span
-                          className={`text-xs border rounded-full px-2 py-0.5 ${priorityStyle[lead.priority]}`}
+                          className={`text-xs border rounded-none px-2 py-0.5 uppercase tracking-wide ${priorityStyle[lead.priority]}`}
                         >
                           {lead.priority} priority
                         </span>
                         {lead.rating && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-neutral-400">
                             {lead.rating}★ ({lead.reviewCount})
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5 truncate">
+                      <p className="text-sm text-neutral-400 mt-0.5 truncate">
                         {lead.address}
                       </p>
                       <div className="mt-2 flex items-center gap-3 text-sm">
                         {lead.websiteScore.hasWebsite ? (
                           <>
-                            <span className="font-medium">
+                            <span className="font-medium text-orange-400">
                               Website score: {lead.websiteScore.score}/100
                             </span>
                             <button
                               onClick={() =>
                                 setExpanded(expanded === lead.placeId ? null : lead.placeId)
                               }
-                              className="text-slate-500 underline underline-offset-2"
+                              className="text-neutral-400 underline underline-offset-2"
                             >
                               {expanded === lead.placeId ? "Hide details" : "Show details"}
                             </button>
                           </>
                         ) : (
-                          <span className="text-red-600 font-medium">No website</span>
+                          <span className="text-orange-500 font-bold">No website</span>
                         )}
                       </div>
                       {expanded === lead.placeId && lead.websiteScore.hasWebsite && (
-                        <div className="mt-3 bg-slate-50 rounded-lg p-3 text-sm">
+                        <div className="mt-3 bg-black border border-neutral-800 p-3 text-sm">
                           <ul className="grid grid-cols-2 gap-1 mb-2">
                             {lead.websiteScore.checks.map((c) => (
-                              <li key={c.label} className={c.passed ? "text-slate-600" : "text-slate-400"}>
+                              <li key={c.label} className={c.passed ? "text-neutral-300" : "text-neutral-600"}>
                                 {c.passed ? "✓" : "✕"} {c.label}
                               </li>
                             ))}
                           </ul>
                           {lead.websiteScore.suggestions.length > 0 && (
                             <>
-                              <p className="font-medium mt-2 mb-1">Needs improvement:</p>
-                              <ul className="list-disc list-inside text-slate-600">
+                              <p className="font-bold text-orange-400 mt-2 mb-1">Needs improvement:</p>
+                              <ul className="list-disc list-inside text-neutral-300">
                                 {lead.websiteScore.suggestions.map((s) => (
                                   <li key={s}>{s}</li>
                                 ))}
@@ -256,7 +323,7 @@ export default function Dashboard() {
                         <a
                           href={generatedUrls[lead.placeId]}
                           target="_blank"
-                          className="text-xs font-medium text-white rounded-lg px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 whitespace-nowrap text-center w-full"
+                          className="text-xs font-bold text-black rounded-none px-3 py-1.5 bg-orange-500 hover:bg-orange-400 whitespace-nowrap text-center w-full uppercase"
                         >
                           View live site ↗
                         </a>
@@ -264,7 +331,7 @@ export default function Dashboard() {
                         <button
                           onClick={() => handleGenerate(lead)}
                           disabled={generating.has(lead.placeId)}
-                          className="text-xs font-medium text-white rounded-lg px-3 py-1.5 bg-slate-900 hover:bg-slate-700 disabled:opacity-50 whitespace-nowrap w-full"
+                          className="text-xs font-bold text-orange-400 border border-orange-600 rounded-none px-3 py-1.5 hover:bg-orange-950 disabled:opacity-50 whitespace-nowrap w-full uppercase"
                         >
                           {generating.has(lead.placeId)
                             ? "Generating…"
@@ -274,19 +341,19 @@ export default function Dashboard() {
                         </button>
                       )}
                       {genErrors[lead.placeId] && (
-                        <p className="text-xs text-red-600 text-right">{genErrors[lead.placeId]}</p>
+                        <p className="text-xs text-orange-500 text-right">{genErrors[lead.placeId]}</p>
                       )}
                       <button
                         onClick={() => handleSave(lead)}
                         disabled={savedIds.has(lead.placeId)}
-                        className="text-xs font-medium border border-slate-300 rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap w-full"
+                        className="text-xs font-medium border border-neutral-700 text-neutral-300 rounded-none px-3 py-1.5 hover:bg-neutral-900 disabled:opacity-50 whitespace-nowrap w-full"
                       >
                         {savedIds.has(lead.placeId) ? "Saved ✓" : "Save to CRM"}
                       </button>
                       <a
                         href={lead.mapsUrl}
                         target="_blank"
-                        className="text-xs text-slate-400 underline underline-offset-2"
+                        className="text-xs text-neutral-500 underline underline-offset-2"
                       >
                         View on Maps
                       </a>

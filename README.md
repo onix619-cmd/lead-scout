@@ -24,6 +24,10 @@ phase.
   You said you already have Google Cloud set up — just confirm this specific
   API is enabled: console.cloud.google.com → "APIs & Services" → search
   "Places API (New)" → Enable → then "Credentials" → create an API key.
+- **New:** also enable **Geocoding API** on the same project (same page:
+  "APIs & Services" → Library → search "Geocoding API" → Enable). This
+  powers the "search by address + radius" feature — your existing
+  `GOOGLE_PLACES_API_KEY` works for it too, nothing new to copy.
 - A Gemini API key, **plus a one-time billing link** (see below — this is
   now required by Google even to use the free-tier limits; usage within
   those limits still costs $0):
