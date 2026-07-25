@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Lead } from "@/lib/types";
 
 const CATEGORIES = [
@@ -43,6 +43,22 @@ const CATEGORIES = [
 
 const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
 
+const PROVINCES = [
+  "Alberta",
+  "British Columbia",
+  "Manitoba",
+  "New Brunswick",
+  "Newfoundland and Labrador",
+  "Northwest Territories",
+  "Nova Scotia",
+  "Nunavut",
+  "Ontario",
+  "Prince Edward Island",
+  "Quebec",
+  "Saskatchewan",
+  "Yukon",
+];
+
 const priorityStyle: Record<Lead["priority"], string> = {
   high: "border-orange-500 text-orange-400",
   medium: "border-orange-700 text-orange-600",
@@ -51,7 +67,11 @@ const priorityStyle: Record<Lead["priority"], string> = {
 
 export default function Dashboard() {
   const [category, setCategory] = useState("Restaurants");
+  const [mode, setMode] = useState<"address" | "province">("address");
   const [address, setAddress] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [province, setProvince] = useState("Quebec");
   const [radiusKm, setRadiusKm] = useState(10);
   const [minRating, setMinRating] = useState(4);
   const [includeNoWebsite, setIncludeNoWebsite] = useState(true);
@@ -64,6 +84,31 @@ export default function Dashboard() {
   const [generating, setGenerating] = useState<Set<string>>(new Set());
   const [generatedUrls, setGeneratedUrls] = useState<Record<string, string>>({});
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (address.trim().length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/autocomplete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: address }),
+        });
+        const data = await res.json();
+        setAddressSuggestions(data.suggestions ?? []);
+      } catch {
+        setAddressSuggestions([]);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [address]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -76,8 +121,10 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           category,
+          mode,
           address,
           radiusKm,
+          province,
           minRating,
           includeNoWebsite,
           includeOutdated,
@@ -147,6 +194,36 @@ export default function Dashboard() {
           onSubmit={handleSearch}
           className="bg-neutral-950 border-2 border-orange-600 rounded-none p-6 mb-8"
         >
+          <div className="mb-4">
+            <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              Search mode
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("address")}
+                className={`px-4 py-2 text-xs uppercase tracking-wide border ${
+                  mode === "address"
+                    ? "bg-orange-500 text-black border-orange-500 font-bold"
+                    : "border-orange-700 text-orange-400"
+                }`}
+              >
+                Near an address
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("province")}
+                className={`px-4 py-2 text-xs uppercase tracking-wide border ${
+                  mode === "province"
+                    ? "bg-orange-500 text-black border-orange-500 font-bold"
+                    : "border-orange-700 text-orange-400"
+                }`}
+              >
+                Whole province
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
@@ -165,38 +242,102 @@ export default function Dashboard() {
                 ))}
               </datalist>
             </div>
-            <div>
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
-                Address
-              </label>
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="123 Main St, Montreal, QC"
-                required
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
-              />
-            </div>
+
+            {mode === "address" ? (
+              <div className="relative">
+                <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                  Address
+                </label>
+                <input
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                  placeholder="123 Main St, Montreal, QC"
+                  required
+                  autoComplete="off"
+                  className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                />
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <ul className="absolute z-10 left-0 right-0 mt-1 bg-black border border-orange-700 max-h-56 overflow-y-auto">
+                    {addressSuggestions.map((s) => (
+                      <li key={s.placeId}>
+                        <button
+                          type="button"
+                          onMouseDown={() => {
+                            setAddress(s.text);
+                            setAddressSuggestions([]);
+                            setShowSuggestions(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-orange-950"
+                        >
+                          {s.text}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                  Province
+                </label>
+                <select
+                  value={province}
+                  onChange={(e) => setProvince(e.target.value)}
+                  className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                >
+                  {PROVINCES.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
-                Search radius
-              </label>
-              <select
-                value={radiusKm}
-                onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
-              >
-                {RADIUS_OPTIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r} km
-                  </option>
-                ))}
-              </select>
+          {mode === "address" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                  Search radius
+                </label>
+                <select
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                >
+                  {RADIUS_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r} km
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+                  Minimum rating: {minRating}★
+                </label>
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.5}
+                  value={minRating}
+                  onChange={(e) => setMinRating(Number(e.target.value))}
+                  className="w-full accent-orange-500"
+                />
+              </div>
             </div>
-            <div>
+          )}
+
+          {mode === "province" && (
+            <div className="mt-4">
               <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
                 Minimum rating: {minRating}★
               </label>
@@ -210,7 +351,7 @@ export default function Dashboard() {
                 className="w-full accent-orange-500"
               />
             </div>
-          </div>
+          )}
 
           <div className="flex flex-wrap gap-6 mt-5">
             <label className="flex items-center gap-2 text-sm text-neutral-300">

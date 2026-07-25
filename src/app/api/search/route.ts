@@ -13,27 +13,42 @@ export async function POST(req: NextRequest) {
       category,
       address,
       radiusKm = 10,
+      province,
+      mode = "address", // "address" | "province"
       minRating = 0,
       includeNoWebsite = true,
       includeOutdated = true,
       maxResults = 50,
     } = body;
 
-    if (!category || !address) {
-      return NextResponse.json(
-        { error: "category and address are required" },
-        { status: 400 }
-      );
+    if (!category) {
+      return NextResponse.json({ error: "category is required" }, { status: 400 });
+    }
+    if (mode === "address" && !address) {
+      return NextResponse.json({ error: "address is required" }, { status: 400 });
+    }
+    if (mode === "province" && !province) {
+      return NextResponse.json({ error: "province is required" }, { status: 400 });
     }
 
-    const center = await geocodeAddress(address);
+    let businesses;
+    let center;
 
-    const businesses = await searchBusinesses({
-      query: category,
-      minRating,
-      maxResults,
-      locationBias: { center, radiusMeters: radiusKm * 1000 },
-    });
+    if (mode === "province") {
+      businesses = await searchBusinesses({
+        query: `${category} in ${province}, Canada`,
+        minRating,
+        maxResults,
+      });
+    } else {
+      center = await geocodeAddress(address);
+      businesses = await searchBusinesses({
+        query: category,
+        minRating,
+        maxResults,
+        locationBias: { center, radiusMeters: radiusKm * 1000 },
+      });
+    }
 
     const leads: Lead[] = await Promise.all(
       businesses.map(async (b) => {

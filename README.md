@@ -28,6 +28,8 @@ phase.
   "APIs & Services" → Library → search "Geocoding API" → Enable). This
   powers the "search by address + radius" feature — your existing
   `GOOGLE_PLACES_API_KEY` works for it too, nothing new to copy.
+- Address autocomplete (suggestions as you type) uses the same Places API
+  (New) you already enabled — no extra setup needed.
 - A Gemini API key, **plus a one-time billing link** (see below — this is
   now required by Google even to use the free-tier limits; usage within
   those limits still costs $0):
