@@ -24,11 +24,24 @@ phase.
   You said you already have Google Cloud set up — just confirm this specific
   API is enabled: console.cloud.google.com → "APIs & Services" → search
   "Places API (New)" → Enable → then "Credentials" → create an API key.
-- A **free** Gemini API key for the AI content writer:
-  1. Go to **aistudio.google.com/apikey** (sign in with the same Google
-     account).
-  2. Click **Create API key** → choose your project → copy it. No credit
-     card required for the free tier.
+- A Gemini API key, **plus a one-time billing link** (see below — this is
+  now required by Google even to use the free-tier limits; usage within
+  those limits still costs $0):
+  1. Go to **aistudio.google.com/apikey**, sign in with the same Google
+     account as your Cloud project, click **Create API key**, choose the
+     same project you used for Places API, copy the key.
+  2. Go to **console.cloud.google.com/billing**, click **Link a billing
+     account** for that project. If you don't have one yet, add a payment
+     method — you will not be charged as long as you stay under Gemini's
+     free-tier limits (currently generous for this app's usage).
+  3. **Set a spend cap as a safety net:** in the same Billing section, go to
+     **Budgets & alerts → Create budget**, set it against this project, and
+     set the amount to something small like $5–10. This doesn't hard-block
+     spending by default, but Google will alert you by email if you're ever
+     about to exceed it — go to the budget's **Actions** settings to also
+     cap spend automatically if you want a hard stop.
+  4. It can take a few minutes for the new billing link to propagate before
+     the quota unlocks.
 - A **free** Vercel API token so the app can deploy generated sites for you:
   1. Go to **vercel.com/account/tokens**.
   2. Click **Create Token**, give it any name, no expiration (or pick one),
