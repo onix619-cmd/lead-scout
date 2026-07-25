@@ -1,14 +1,13 @@
 import { GeneratedContent, Lead } from "./types";
 
-// Uses Google's free-tier Gemini API (get a key at aistudio.google.com — no
-// credit card required for the free tier). Swap the model or provider here
-// later if you want a different one.
-const MODEL = "gemini-2.0-flash";
+// Uses Groq's free API (OpenAI-compatible) — genuinely free tier, no credit
+// card required. Get a key at console.groq.com/keys.
+const MODEL = "llama-3.3-70b-versatile";
 
 export async function generateContent(lead: Lead): Promise<GeneratedContent> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing GEMINI_API_KEY. Add it to your environment variables.");
+    throw new Error("Missing GROQ_API_KEY. Add it to your environment variables.");
   }
 
   const prompt = `You are a marketing copywriter creating landing page content for a local business.
@@ -33,30 +32,32 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
   "googleBusinessDescription": "string, under 750 characters"
 }`;
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, responseMimeType: "application/json" },
-      }),
-    }
-  );
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+    }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${text}`);
+    throw new Error(`Groq API error (${res.status}): ${text}`);
   }
 
   const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini returned an empty response.");
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Groq returned an empty response.");
 
   try {
     return JSON.parse(text) as GeneratedContent;
   } catch {
-    throw new Error("Gemini returned content that wasn't valid JSON — try again.");
+    throw new Error("Groq returned content that wasn't valid JSON — try again.");
   }
 }
