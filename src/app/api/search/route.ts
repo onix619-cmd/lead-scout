@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
           ...b,
           websiteScore,
           priority: priorityFromScore(true, websiteScore.score),
+          socialLinks: websiteScore.socialLinks,
         };
       })
     );

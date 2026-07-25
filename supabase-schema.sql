@@ -22,3 +22,6 @@ create table if not exists leads (
 -- user accounts.
 alter table leads enable row level security;
 create policy "Allow all for now" on leads for all using (true) with check (true);
+
+-- Run this if you already created the leads table before Phase 2:
+alter table leads add column if not exists generated_url text;

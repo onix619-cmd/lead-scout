@@ -113,7 +113,16 @@ export async function analyzeWebsite(url: string): Promise<WebsiteScore> {
   const earned = checks.reduce((s, c) => s + (c.passed ? c.weight : 0), 0);
   const score = Math.round((earned / totalWeight) * 100);
 
-  return { score, hasWebsite: true, checks, suggestions };
+  return { score, hasWebsite: true, checks, suggestions, socialLinks: extractSocialLinks(html) };
+}
+
+export function extractSocialLinks(html: string): { instagram?: string; facebook?: string } {
+  const instaMatch = html.match(/https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.\/?=&%-]*/i);
+  const fbMatch = html.match(/https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9_.\/?=&%-]*/i);
+  return {
+    instagram: instaMatch?.[0],
+    facebook: fbMatch?.[0],
+  };
 }
 
 export function priorityFromScore(hasWebsite: boolean, score: number): "high" | "medium" | "low" {

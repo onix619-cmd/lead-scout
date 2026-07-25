@@ -30,6 +30,9 @@ export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [generating, setGenerating] = useState<Set<string>>(new Set());
+  const [generatedUrls, setGeneratedUrls] = useState<Record<string, string>>({});
+  const [genErrors, setGenErrors] = useState<Record<string, string>>({});
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -49,6 +52,29 @@ export default function Dashboard() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGenerate(lead: Lead) {
+    setGenerating((prev) => new Set(prev).add(lead.placeId));
+    setGenErrors((prev) => ({ ...prev, [lead.placeId]: "" }));
+    try {
+      const res = await fetch("/api/generate-site", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lead),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate site");
+      setGeneratedUrls((prev) => ({ ...prev, [lead.placeId]: data.url }));
+    } catch (err: any) {
+      setGenErrors((prev) => ({ ...prev, [lead.placeId]: err.message }));
+    } finally {
+      setGenerating((prev) => {
+        const next = new Set(prev);
+        next.delete(lead.placeId);
+        return next;
+      });
     }
   }
 
@@ -225,11 +251,35 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0 w-44">
+                      {generatedUrls[lead.placeId] ? (
+                        <a
+                          href={generatedUrls[lead.placeId]}
+                          target="_blank"
+                          className="text-xs font-medium text-white rounded-lg px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 whitespace-nowrap text-center w-full"
+                        >
+                          View live site ↗
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => handleGenerate(lead)}
+                          disabled={generating.has(lead.placeId)}
+                          className="text-xs font-medium text-white rounded-lg px-3 py-1.5 bg-slate-900 hover:bg-slate-700 disabled:opacity-50 whitespace-nowrap w-full"
+                        >
+                          {generating.has(lead.placeId)
+                            ? "Generating…"
+                            : lead.websiteScore.hasWebsite
+                            ? "Generate Better Website"
+                            : "Generate Website"}
+                        </button>
+                      )}
+                      {genErrors[lead.placeId] && (
+                        <p className="text-xs text-red-600 text-right">{genErrors[lead.placeId]}</p>
+                      )}
                       <button
                         onClick={() => handleSave(lead)}
                         disabled={savedIds.has(lead.placeId)}
-                        className="text-xs font-medium border border-slate-300 rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap"
+                        className="text-xs font-medium border border-slate-300 rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap w-full"
                       >
                         {savedIds.has(lead.placeId) ? "Saved ✓" : "Save to CRM"}
                       </button>

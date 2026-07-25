@@ -21,10 +21,22 @@ export type WebsiteScore = {
     weight: number;
   }[];
   suggestions: string[];
+  socialLinks?: { instagram?: string; facebook?: string };
   error?: string;
 };
 
 export type Lead = Business & {
   websiteScore: WebsiteScore;
   priority: "high" | "medium" | "low";
+  socialLinks?: { instagram?: string; facebook?: string };
+};
+
+export type GeneratedContent = {
+  tagline: string;
+  aboutUs: string;
+  seoTitle: string;
+  metaDescription: string;
+  highlights: string[]; // 3-4 short selling points (menu items or services)
+  faq: { question: string; answer: string }[];
+  googleBusinessDescription: string;
 };
