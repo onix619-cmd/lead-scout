@@ -3,8 +3,11 @@ import { GeneratedContent, Lead } from "./types";
 // Uses Google's Gemini API. Note: as of Google's Dec 2025 policy change, the
 // free tier requires a billing account linked to your Google Cloud project
 // (with a spend cap) to get usable quota — see README for the one-time setup.
-// Model list / current names: https://ai.google.dev/gemini-api/docs/models
-const MODEL = "gemini-2.5-flash-lite";
+// Uses the "-latest" alias (rather than a pinned version like
+// gemini-2.5-flash) because Google periodically restricts older model
+// versions to new API keys/projects, which breaks a hardcoded name. Google
+// keeps this alias pointed at their current recommended flash model.
+const MODEL = "gemini-flash-latest";
 
 export async function generateContent(lead: Lead): Promise<GeneratedContent> {
   const apiKey = process.env.GEMINI_API_KEY;
