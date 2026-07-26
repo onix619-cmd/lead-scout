@@ -67,6 +67,7 @@ const priorityStyle: Record<Lead["priority"], string> = {
 
 export default function Dashboard() {
   const [category, setCategory] = useState("Restaurants");
+  const [showCategoryList, setShowCategoryList] = useState(false);
   const [mode, setMode] = useState<"address" | "province">("address");
   const [address, setAddress] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
@@ -248,22 +249,72 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="relative">
               <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
                 Category
               </label>
-              <input
-                list="category-options"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Restaurants, Plumbers..."
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
-              />
-              <datalist id="category-options">
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
+              <div className="flex">
+                <input
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setShowCategoryList(true);
+                  }}
+                  onFocus={() => setShowCategoryList(true)}
+                  onBlur={() => setTimeout(() => setShowCategoryList(false), 150)}
+                  placeholder="e.g. Restaurants, Plumbers..."
+                  autoComplete="off"
+                  className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                />
+                {category && (
+                  <button
+                    type="button"
+                    onMouseDown={() => {
+                      setCategory("");
+                      setShowCategoryList(true);
+                    }}
+                    className="border border-l-0 border-orange-700 px-2 text-orange-500 text-sm"
+                    title="Clear"
+                  >
+                    ✕
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onMouseDown={() => setShowCategoryList((prev) => !prev)}
+                  className="border border-l-0 border-orange-700 px-3 text-orange-500 text-xs"
+                  title="Show all categories"
+                >
+                  ▼
+                </button>
+              </div>
+              {showCategoryList && (
+                <ul className="absolute z-10 left-0 right-0 mt-1 bg-black border border-orange-700 max-h-56 overflow-y-auto">
+                  {(category.trim()
+                    ? CATEGORIES.filter((c) => c.toLowerCase().includes(category.toLowerCase()))
+                    : CATEGORIES
+                  ).map((c) => (
+                    <li key={c}>
+                      <button
+                        type="button"
+                        onMouseDown={() => {
+                          setCategory(c);
+                          setShowCategoryList(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-orange-950"
+                      >
+                        {c}
+                      </button>
+                    </li>
+                  ))}
+                  {category.trim() &&
+                    !CATEGORIES.some((c) => c.toLowerCase().includes(category.toLowerCase())) && (
+                      <li className="px-3 py-2 text-xs text-neutral-500">
+                        No matches — you can still search "{category}" as a custom category.
+                      </li>
+                    )}
+                </ul>
+              )}
             </div>
 
             {mode === "address" ? (
