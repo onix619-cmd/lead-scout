@@ -19,9 +19,7 @@ export type Theme = {
 };
 
 const RESTAURANT_PALETTES = [
-  { primary: "#b45309", accent: "#fef3c7", dark: "#161311", text: "#f5f0ea" },
-  { primary: "#7c2d12", accent: "#fde8df", dark: "#171210", text: "#f6efe9" },
-  { primary: "#3f3f1e", accent: "#f2f0dd", dark: "#14140f", text: "#f3f1e7" },
+  { primary: "#c9a24b", accent: "#1a1613", dark: "#0d0c0a", text: "#f5efe3" },
 ];
 
 function paletteFor(name: string, palettes: typeof RESTAURANT_PALETTES) {
