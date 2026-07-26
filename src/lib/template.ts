@@ -139,8 +139,28 @@ ${theme.playful ? `
       <span>${escapeHtml(lead.address)}</span>
       ${lead.phone ? `<span>·</span><span>${escapeHtml(lead.phone)}</span>` : ""}
     </div>
+    ${themeKey === "restaurant" ? `
+    <div class="mt-6 flex flex-wrap gap-2 justify-center">
+      ${lead.rating ? `<span class="bg-white/10 border border-white/20 text-white text-xs px-4 py-1.5 rounded-full">${lead.rating} / 5</span>` : ""}
+      ${content.highlights.slice(0, 2).map((h) => `<span class="bg-white/10 border border-white/20 text-white text-xs px-4 py-1.5 rounded-full">${escapeHtml(h)}</span>`).join("")}
+    </div>` : ""}
   </div>
 </header>
+
+${themeKey === "restaurant" ? `
+<!-- Why Choose Us -->
+<section class="max-w-6xl mx-auto px-6 py-20 reveal">
+  <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2 text-center">A Distinct Experience</p>
+  <h2 class="text-3xl font-semibold mb-10 font-display text-center">Why Guests Keep Coming Back</h2>
+  <div class="grid sm:grid-cols-3 gap-8">
+    ${content.highlights.slice(0, 3).map((h, i) => `
+    <div class="text-center r-card p-6 hover-scale" style="background:var(--accent);">
+      <div class="text-3xl mb-3">${["🍷", "🕯️", "🤝"][i % 3]}</div>
+      <h3 class="font-semibold text-lg mb-2 font-display">${escapeHtml(h)}</h3>
+      <p class="text-sm text-slate-600">${["Classic technique, quality ingredients.", "An atmosphere made for lingering.", "Attentive, genuine hospitality."][i % 3]}</p>
+    </div>`).join("")}
+  </div>
+</section>` : ""}
 
 <!-- About -->
 <section id="about" class="max-w-6xl mx-auto px-6 py-20 grid sm:grid-cols-5 gap-10 reveal">
@@ -226,8 +246,12 @@ ${galleryImages.length > 0 ? `
 
     <form id="reserve-form" class="space-y-4 bg-white r-card p-6 shadow-sm">
       <div>
-        <label class="text-sm text-slate-600 block mb-1">Your name</label>
+        <label class="text-sm text-slate-600 block mb-1">Full name</label>
         <input id="f-name" required class="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="Jane Doe" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-600 block mb-1">Phone (optional)</label>
+        <input id="f-phone" type="tel" class="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="(555) 123-4567" />
       </div>
 
       <div id="reservation-fields" class="space-y-4">
@@ -235,7 +259,8 @@ ${galleryImages.length > 0 ? `
           <div>
             <label class="text-sm text-slate-600 block mb-1">Guests</label>
             <select id="f-guests" class="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm">
-              ${Array.from({ length: 10 }, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === 2 ? "selected" : ""}>${n} ${n === 1 ? "person" : "people"}</option>`).join("")}
+              ${[1, 2, 3, 4, 5].map((n) => `<option value="${n}" ${n === 2 ? "selected" : ""}>${n} Guest${n === 1 ? "" : "s"}</option>`).join("")}
+              <option value="6+">6+ Guests (Group)</option>
             </select>
           </div>
           <div>
@@ -250,7 +275,7 @@ ${galleryImages.length > 0 ? `
       </div>
 
       <div>
-        <label class="text-sm text-slate-600 block mb-1">Note (optional)</label>
+        <label class="text-sm text-slate-600 block mb-1">Special requests / allergies</label>
         <textarea id="f-note" rows="3" class="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm" placeholder="Allergies, special occasion, seating preference..."></textarea>
       </div>
 
@@ -331,16 +356,18 @@ ${galleryImages.length > 0 ? `
   document.getElementById('reserve-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
     const note = document.getElementById('f-note').value.trim();
     let msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, ';
     if (mode === 'reservation') {
       const guests = document.getElementById('f-guests').value;
       const date = document.getElementById('f-date').value;
       const time = document.getElementById('f-time').value;
-      msg += 'I would like to reserve for ' + guests + ' people on ' + (date || '[date]') + ' at ' + (time || '[time]') + '. Name: ' + name + '.';
+      msg += 'I would like to reserve for ' + guests + ' on ' + (date || '[date]') + ' at ' + (time || '[time]') + '. Name: ' + name + '.';
     } else {
       msg += 'I have a question / order request: ' + (note || '[details]') + '. Name: ' + name + '.';
     }
+    if (phone) msg += ' Phone: ' + phone + '.';
     if (mode === 'reservation' && note) msg += ' Note: ' + note;
 
     ${wa
