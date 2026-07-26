@@ -206,7 +206,7 @@ export default function Dashboard() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         <header className="mb-8 border-b-2 border-orange-500 pb-4">
           <h1 className="text-3xl font-bold tracking-widest text-orange-500 uppercase">
-            Lead Scout
+            Business Website Generator
           </h1>
           <p className="text-neutral-400 mt-1">
             Find local businesses near an address and see which ones need a better website.

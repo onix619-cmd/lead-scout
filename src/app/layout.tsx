@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lead Scout",
+  title: "Business Website Generator",
   description: "Find local businesses and score their websites",
 };
 
