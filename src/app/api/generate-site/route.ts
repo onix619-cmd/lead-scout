@@ -3,6 +3,7 @@ import { generateContent } from "@/lib/content-writer";
 import { generateLandingPageHTML } from "@/lib/template";
 import { deployToVercel } from "@/lib/deploy";
 import { getSupabase } from "@/lib/supabase";
+import { fetchPlaceReviews } from "@/lib/reviews";
 import { Lead } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -20,9 +21,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid lead payload" }, { status: 400 });
     }
 
+    const realReviews = lead.realReviews ?? (await fetchPlaceReviews(lead.placeId));
+
     const leadWithImages: Lead = {
       ...lead,
       uploadedImages: images && images.length > 0 ? images : lead.uploadedImages,
+      realReviews,
     };
 
     const content = await generateContent(leadWithImages, comment);

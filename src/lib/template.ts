@@ -165,7 +165,9 @@ ${theme.playful ? `
 
 <!-- Hero -->
 <header id="top" class="relative pt-16" style="background:var(--dark);">
-  ${heroImage ? `<img src="${heroImage}" alt="${escapeHtml(lead.name)}" class="w-full h-[85vh] object-cover opacity-45 ${theme.playful ? "" : "parallax"}" />` : `<div class="w-full h-[60vh]"></div>`}
+  ${heroImage
+    ? `<img src="${heroImage}" alt="${escapeHtml(lead.name)}" class="w-full h-[85vh] object-cover opacity-45 ${theme.playful ? "" : "parallax"}" />`
+    : `<div class="w-full h-[85vh]" style="background: radial-gradient(circle at 30% 20%, ${theme.primary}33, transparent 55%), radial-gradient(circle at 80% 80%, ${theme.primary}22, transparent 50%), ${theme.dark};"></div>`}
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
     ${R ? `<span class="inline-flex items-center gap-2 border border-white/20 rounded-full px-4 py-1.5 text-xs uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
     <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display">${escapeHtml(lead.name)}</h1>
@@ -283,12 +285,35 @@ ${galleryImages.length > 0 ? `
 </section>` : ""}
 
 <!-- Reviews -->
-<section id="reviews" class="py-20 text-center reveal" style="background:${R ? theme.dark : theme.dark};">
+<section id="reviews" class="py-20 text-center reveal" style="background:${theme.dark};">
   <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Reviews</p>
   <h2 class="text-3xl font-semibold mb-4 font-display" style="color:${theme.text};">What People Are Saying</h2>
   <div class="text-3xl mb-2">${starsHtml(filledStars)}</div>
   <p style="color:${theme.text}; opacity:.8;">${lead.rating ?? "—"} out of 5 · ${lead.reviewCount} Google reviews</p>
-  <a href="${lead.mapsUrl}" target="_blank" class="inline-block mt-5 text-sm font-medium underline underline-offset-4" style="color:var(--primary);">Read reviews on Google →</a>
+
+  ${lead.realReviews && lead.realReviews.length > 0 ? `
+  <div class="max-w-5xl mx-auto px-6 mt-10 grid sm:grid-cols-3 gap-5 text-left">
+    ${lead.realReviews.map((r) => {
+      const snippet = r.text.length > 220 ? r.text.slice(0, 220).trim() + "…" : r.text;
+      const initial = (r.authorName || "G").trim().charAt(0).toUpperCase();
+      return `
+    <div class="r-card p-5" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);">
+      <div class="mb-2 text-sm">${starsHtml(Math.round(r.rating))}</div>
+      <p class="text-sm mb-4" style="color:${theme.text}; opacity:.85;">"${escapeHtml(snippet)}"</p>
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--primary); color:#0d0c0a;">${escapeHtml(initial)}</div>
+        <div>
+          <p class="text-xs font-medium" style="color:${theme.text};">${escapeHtml(r.authorName)}</p>
+          <p class="text-[11px]" style="color:${theme.text}; opacity:.5;">${escapeHtml(r.relativeTime || "Google review")}</p>
+        </div>
+      </div>
+    </div>`;
+    }).join("")}
+  </div>
+  <p class="text-[11px] mt-4" style="color:${theme.text}; opacity:.4;">Real reviews via Google.</p>
+  ` : ""}
+
+  <a href="${lead.mapsUrl}" target="_blank" class="inline-block mt-6 text-sm font-medium underline underline-offset-4" style="color:var(--primary);">Read more reviews on Google →</a>
 </section>
 
 <!-- Reservation / Order -->
@@ -426,6 +451,18 @@ ${galleryImages.length > 0 ? `
   function setMode(m) {
     mode = m;
     document.getElementById('reservation-fields').style.display = m === 'reservation' ? 'block' : 'none';
+    const activeStyle = 'flex-1 py-2 r-card text-sm font-medium btn-primary';
+    const inactiveStyle = 'flex-1 py-2 r-card text-sm font-medium';
+    const resBtn = document.getElementById('mode-reservation');
+    const ordBtn = document.getElementById('mode-order');
+    resBtn.className = m === 'reservation' ? activeStyle : inactiveStyle;
+    ordBtn.className = m === 'order' ? activeStyle : inactiveStyle;
+    resBtn.style.cssText = m === 'reservation' ? '' : (${JSON.stringify(R
+      ? "background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#fff;"
+      : "background:#fff; border:1px solid #cbd5e1;")});
+    ordBtn.style.cssText = m === 'order' ? '' : (${JSON.stringify(R
+      ? "background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:#fff;"
+      : "background:#fff; border:1px solid #cbd5e1;")});
   }
 
   function showTab(i) {

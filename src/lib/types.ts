@@ -30,6 +30,7 @@ export type Lead = Business & {
   priority: "high" | "medium" | "low";
   socialLinks?: { instagram?: string; facebook?: string };
   uploadedImages?: string[]; // data URLs, user-provided
+  realReviews?: { authorName: string; rating: number; text: string; relativeTime: string }[];
 };
 
 export type GeneratedContent = {
