@@ -35,9 +35,11 @@ export type Lead = Business & {
 export type GeneratedContent = {
   tagline: string;
   aboutUs: string;
+  secondaryAbout: string; // chef intro / roasting story / fun shop detail
   seoTitle: string;
   metaDescription: string;
   highlights: string[]; // 3-4 short selling points (menu items or services)
+  showcaseItems: { name: string; description: string; tag?: string }[]; // signature dishes / featured drinks / flavors
   faq: { question: string; answer: string }[];
   googleBusinessDescription: string;
 };
