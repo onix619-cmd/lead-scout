@@ -29,6 +29,7 @@ export type Lead = Business & {
   websiteScore: WebsiteScore;
   priority: "high" | "medium" | "low";
   socialLinks?: { instagram?: string; facebook?: string };
+  uploadedImages?: string[]; // data URLs, user-provided
 };
 
 export type GeneratedContent = {

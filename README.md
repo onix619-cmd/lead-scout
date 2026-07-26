@@ -125,6 +125,25 @@ know, so highlights/FAQ stay general rather than fabricated — good enough
 for a "here's what this could look like" pitch, not meant to be the
 business's final real site.
 
+The template includes a sticky nav, hero, hours table, photo gallery,
+reviews summary, and a reservation/order section. The reservation form
+doesn't book anything itself — submitting it opens WhatsApp with a
+pre-filled message to the business's number (or shows a "please call us"
+message if no phone/WhatsApp number is available).
+
+**Uploading photos:** click "Upload photos" on any lead before generating —
+these get embedded directly into the generated site's gallery and hero
+instead of relying on the single photo Google Places returns. Keep it to a
+handful of reasonably sized images (a few hundred KB each) — very large or
+many images can hit Vercel's request size limit on the free plan and cause
+the generation to fail.
+
+**Regenerating with feedback:** once a site is generated, a comment box
+appears under it. Typing feedback (e.g. "make it feel more upscale", "add a
+line about our brunch menu") and clicking "Regenerate with feedback" asks
+the AI to rewrite the copy accordingly and redeploys — it updates the same
+live URL rather than creating a new one.
+
 ## What's next (later phase)
 
 - Agent 6: a proper CRM table view (status, contacted, filters) instead of

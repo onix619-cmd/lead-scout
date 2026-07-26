@@ -9,21 +9,32 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const lead: Lead = await req.json();
+    const payload = await req.json();
+    const { lead, comment, images } = payload as {
+      lead: Lead;
+      comment?: string;
+      images?: string[];
+    };
+
     if (!lead?.name || !lead?.placeId) {
       return NextResponse.json({ error: "Invalid lead payload" }, { status: 400 });
     }
 
-    const content = await generateContent(lead);
-    const html = generateLandingPageHTML(lead, content);
-    const url = await deployToVercel(lead.name, lead.placeId, html);
+    const leadWithImages: Lead = {
+      ...lead,
+      uploadedImages: images && images.length > 0 ? images : lead.uploadedImages,
+    };
+
+    const content = await generateContent(leadWithImages, comment);
+    const html = generateLandingPageHTML(leadWithImages, content);
+    const url = await deployToVercel(leadWithImages.name, leadWithImages.placeId, html);
 
     const supabase = getSupabase();
     if (supabase) {
       await supabase
         .from("leads")
         .update({ generated_url: url })
-        .eq("place_id", lead.placeId);
+        .eq("place_id", leadWithImages.placeId);
     }
 
     return NextResponse.json({ url });

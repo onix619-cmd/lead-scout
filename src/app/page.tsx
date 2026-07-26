@@ -84,6 +84,8 @@ export default function Dashboard() {
   const [generating, setGenerating] = useState<Set<string>>(new Set());
   const [generatedUrls, setGeneratedUrls] = useState<Record<string, string>>({});
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
+  const [images, setImages] = useState<Record<string, string[]>>({});
+  const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -141,14 +143,35 @@ export default function Dashboard() {
     }
   }
 
-  async function handleGenerate(lead: Lead) {
+  async function handleImageUpload(placeId: string, files: FileList | null) {
+    if (!files) return;
+    const readers = Array.from(files)
+      .slice(0, 6)
+      .map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          })
+      );
+    const dataUrls = await Promise.all(readers);
+    setImages((prev) => ({ ...prev, [placeId]: dataUrls }));
+  }
+
+  async function handleGenerate(lead: Lead, withComment?: boolean) {
     setGenerating((prev) => new Set(prev).add(lead.placeId));
     setGenErrors((prev) => ({ ...prev, [lead.placeId]: "" }));
     try {
       const res = await fetch("/api/generate-site", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lead),
+        body: JSON.stringify({
+          lead,
+          images: images[lead.placeId],
+          comment: withComment ? comments[lead.placeId] : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate site");
@@ -410,14 +433,47 @@ export default function Dashboard() {
                           {lead.priority} priority
                         </span>
                         {lead.rating && (
-                          <span className="text-xs text-neutral-400">
-                            {lead.rating}★ ({lead.reviewCount})
+                          <span className="text-xs flex items-center gap-0.5">
+                            <span className="text-yellow-400">
+                              {"★".repeat(Math.round(lead.rating))}
+                              <span className="text-neutral-700">
+                                {"★".repeat(5 - Math.round(lead.rating))}
+                              </span>
+                            </span>
+                            <span className="text-neutral-400 ml-1">
+                              {lead.rating} ({lead.reviewCount})
+                            </span>
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-neutral-400 mt-0.5 truncate">
                         {lead.address}
                       </p>
+                      <div className="mt-1.5 flex items-center gap-3 text-xs flex-wrap">
+                        {lead.phone && (
+                          <a
+                            href={`https://wa.me/${lead.phone.replace(/[^\d]/g, "")}`}
+                            target="_blank"
+                            className="text-[#25D366] font-medium underline underline-offset-2"
+                          >
+                            WhatsApp
+                          </a>
+                        )}
+                        {lead.phone && (
+                          <a href={`tel:${lead.phone}`} className="text-neutral-300 underline underline-offset-2">
+                            {lead.phone}
+                          </a>
+                        )}
+                        {lead.website && (
+                          <a
+                            href={lead.website}
+                            target="_blank"
+                            className="text-orange-400 underline underline-offset-2"
+                          >
+                            Visit site ↗
+                          </a>
+                        )}
+                      </div>
                       <div className="mt-2 flex items-center gap-3 text-sm">
                         {lead.websiteScore.hasWebsite ? (
                           <>
@@ -459,7 +515,19 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0 w-44">
+                    <div className="flex flex-col items-end gap-2 shrink-0 w-52">
+                      <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900">
+                        {images[lead.placeId]?.length
+                          ? `${images[lead.placeId].length} photo(s) added`
+                          : "Upload photos"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(lead.placeId, e.target.files)}
+                        />
+                      </label>
                       {generatedUrls[lead.placeId] ? (
                         <a
                           href={generatedUrls[lead.placeId]}
@@ -480,6 +548,26 @@ export default function Dashboard() {
                             ? "Generate Better Website"
                             : "Generate Website"}
                         </button>
+                      )}
+                      {generatedUrls[lead.placeId] && (
+                        <div className="w-full">
+                          <textarea
+                            value={comments[lead.placeId] ?? ""}
+                            onChange={(e) =>
+                              setComments((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
+                            }
+                            placeholder="e.g. darker colors, add brunch mention..."
+                            rows={2}
+                            className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 placeholder-neutral-600 focus:outline-none focus:border-orange-500"
+                          />
+                          <button
+                            onClick={() => handleGenerate(lead, true)}
+                            disabled={generating.has(lead.placeId) || !comments[lead.placeId]?.trim()}
+                            className="mt-1 text-[11px] font-bold text-orange-400 border border-orange-600 rounded-none px-3 py-1 hover:bg-orange-950 disabled:opacity-40 whitespace-nowrap w-full uppercase"
+                          >
+                            {generating.has(lead.placeId) ? "Regenerating…" : "Regenerate with feedback"}
+                          </button>
+                        </div>
                       )}
                       {genErrors[lead.placeId] && (
                         <p className="text-xs text-orange-500 text-right">{genErrors[lead.placeId]}</p>

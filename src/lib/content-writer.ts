@@ -9,7 +9,10 @@ import { GeneratedContent, Lead } from "./types";
 // keeps this alias pointed at their current recommended flash model.
 const MODEL = "gemini-flash-latest";
 
-export async function generateContent(lead: Lead): Promise<GeneratedContent> {
+export async function generateContent(
+  lead: Lead,
+  revisionComment?: string
+): Promise<GeneratedContent> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GEMINI_API_KEY. Add it to your environment variables.");
@@ -25,7 +28,7 @@ Google rating: ${lead.rating ?? "unknown"} (${lead.reviewCount} reviews)
 Write short, concrete, non-generic marketing copy for this business. Do not
 invent specific menu items, prices, or facts you don't know — keep
 highlights about the type of experience/service, not fabricated specifics.
-
+${revisionComment ? `\nThe business owner reviewed a previous draft and left this feedback — apply it: "${revisionComment}"\n` : ""}
 Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
 {
   "tagline": "string, under 10 words",
