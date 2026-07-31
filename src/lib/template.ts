@@ -147,6 +147,23 @@ ${theme.googleFontsUrl ? `<link rel="preconnect" href="https://fonts.googleapis.
   .glass { background: rgba(0,0,0,0.35); backdrop-filter: blur(10px); }
   .float-btn { box-shadow: 0 10px 25px rgba(0,0,0,0.25); transition: transform .2s ease; }
   .float-btn:hover { transform: scale(1.08); }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(254,73,0,0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(254,73,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(254,73,0,0); }
+  }
+  .pulse-dot { animation: pulseDot 2s infinite; }
+  .nav-cta {
+    background: var(--primary);
+    background-size: 200% 100%;
+    background-position: 0% 0%;
+    transition: background-position .4s ease, transform .2s ease;
+  }
+  .nav-cta:hover {
+    background-image: linear-gradient(90deg, #fe4900, #180725);
+    background-position: 100% 0%;
+    transform: scale(1.04);
+  }
   ${theme.playful ? `
   @keyframes floaty { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(8deg); } }
   .sprinkle { position: absolute; animation: floaty 4s ease-in-out infinite; opacity: 0.7; }
@@ -177,7 +194,7 @@ ${theme.playful ? `
     <div class="hidden sm:flex items-center gap-6 text-sm">
       ${navLinks.map(([href, label]) => `<a href="${href}" class="hover:opacity-80">${escapeHtml(label)}</a>`).join("")}
     </div>
-    <a href="#reserve" class="btn-primary text-sm font-medium px-4 py-2 r-card">${theme.labels.reserveCta}</a>
+    <a href="#reserve" class="nav-cta text-sm font-medium px-4 py-2 r-card" style="color:${R ? "#0d0c0a" : "#fff"};">${theme.labels.reserveCta}</a>
   </div>
 </nav>
 
@@ -187,7 +204,7 @@ ${theme.playful ? `
     ? `<img src="${heroImage}" alt="${escapeHtml(lead.name)}" class="w-full h-[85vh] object-cover opacity-45 blur-sm scale-105 ${theme.playful ? "" : "parallax"}" />`
     : `<div class="w-full h-[85vh]" style="background: radial-gradient(circle at 30% 20%, ${theme.primary}33, transparent 55%), radial-gradient(circle at 80% 80%, ${theme.primary}22, transparent 50%), ${theme.dark};"></div>`}
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
-    ${R ? `<span class="inline-flex items-center gap-2 border border-white/20 rounded-full px-4 py-1.5 text-xs uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
+    ${R ? `<span class="inline-flex items-center gap-2.5 border border-white/20 rounded-full px-5 py-2 text-sm sm:text-base uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-2 h-2 rounded-full pulse-dot" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
     <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display gradient-text">${escapeHtml(lead.name)}</h1>
     <p class="text-white/90 text-lg sm:text-xl mt-4 max-w-xl">${escapeHtml(content.tagline)}</p>
     ${!R ? `<p class="text-white/70 text-sm mt-2 uppercase tracking-widest">${escapeHtml(lead.category)}</p>` : ""}
