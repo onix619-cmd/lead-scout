@@ -81,15 +81,19 @@ export async function POST(req: NextRequest) {
     });
 
     filtered.sort((a, b) => {
-      const order = { high: 0, medium: 1, low: 2 };
-      return order[a.priority] - order[b.priority];
+      const aNoWeb = !a.websiteScore.hasWebsite;
+      const bNoWeb = !b.websiteScore.hasWebsite;
+      if (aNoWeb && !bNoWeb) return -1;
+      if (!aNoWeb && bNoWeb) return 1;
+      
+      return a.websiteScore.score - b.websiteScore.score;
     });
 
     return NextResponse.json({ leads: filtered, center });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json(
-      { error: err?.message ?? "Something went wrong" },
+      { error: err instanceof Error ? err.message : "Something went wrong" },
       { status: 500 }
     );
   }

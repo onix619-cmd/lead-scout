@@ -84,7 +84,7 @@ export function generateLandingPageHTML(
   const radiusOverride = isB ? "0px" : theme.radius;
   const primaryColor = isB ? "#fe4900" : theme.primary;
   const btnGradient = isB
-    ? "linear-gradient(90deg, #fe4900, #fd2d00)"
+    ? "linear-gradient(90deg, #fe4900, #fdbe03)"
     : "linear-gradient(90deg, #fdbe03, #fe4900)";
 
   const sectionHeading = (overline: string, title: string, center = true) => `

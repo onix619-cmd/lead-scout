@@ -312,7 +312,7 @@ export default function Dashboard() {
                   {category.trim() &&
                     !CATEGORIES.some((c) => c.toLowerCase().includes(category.toLowerCase())) && (
                       <li className="px-3 py-2 text-xs text-neutral-500">
-                        No matches — you can still search "{category}" as a custom category.
+                        No matches — you can still search &quot;{category}&quot; as a custom category.
                       </li>
                     )}
                 </ul>
@@ -568,6 +568,17 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
+                    
+                    <div className="w-24 h-24 shrink-0 bg-neutral-900 border border-neutral-800 overflow-hidden hidden sm:block">
+                      {images[lead.placeId]?.[0] ? (
+                        <img src={images[lead.placeId][0]} alt="Preview" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" />
+                      ) : lead.photoUrl ? (
+                        <img src={lead.photoUrl} alt="Google Place" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-neutral-600 text-[10px] text-center p-2">No Image</div>
+                      )}
+                    </div>
+
                     <div className="flex flex-col items-end gap-2 shrink-0 w-52">
                       <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900">
                         {images[lead.placeId]?.length
@@ -595,7 +606,7 @@ export default function Dashboard() {
                           className="w-full mt-1.5 bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 placeholder-neutral-600 focus:outline-none focus:border-orange-500"
                         />
                         <p className="text-[10px] text-neutral-500 mt-1">
-                          One item per line: "Name - $Price". Use "## Category" for section headers.
+                          One item per line: &quot;Name - $Price&quot;. Use &quot;## Category&quot; for section headers.
                         </p>
                       </details>
                       {generatedUrls[lead.placeId] ? (
