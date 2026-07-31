@@ -569,7 +569,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     
-                    <div className="w-24 h-24 shrink-0 bg-neutral-900 border border-neutral-800 overflow-hidden hidden sm:block">
+                    <div className="w-48 h-48 shrink-0 bg-neutral-900 border border-neutral-800 overflow-hidden hidden sm:block">
                       {images[lead.placeId]?.[0] ? (
                         <img src={images[lead.placeId][0]} alt="Preview" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" />
                       ) : lead.photoUrl ? (
