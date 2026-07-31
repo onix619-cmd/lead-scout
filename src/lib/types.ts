@@ -41,6 +41,7 @@ export type Lead = Business & {
   uploadedImages?: string[]; // data URLs, user-provided
   realReviews?: { authorName: string; rating: number; text: string; relativeTime: string }[];
   menuText?: string; // raw menu the user pasted in, real data, parsed at generation time
+  menuLink?: string; // direct link to menu, provided by user
 };
 
 export type GeneratedContent = {

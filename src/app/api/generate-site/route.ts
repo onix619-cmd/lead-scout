@@ -12,11 +12,12 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    const { lead, comment, images, menuText } = payload as {
+    const { lead, comment, images, menuText, menuLink } = payload as {
       lead: Lead;
       comment?: string;
       images?: string[];
       menuText?: string;
+      menuLink?: string;
     };
 
     if (!lead?.name || !lead?.placeId) {
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
 
     const realReviews = lead.realReviews ?? (await fetchPlaceReviews(lead.placeId));
     const finalMenuText = menuText ?? lead.menuText;
+    const finalMenuLink = menuLink ?? lead.menuLink;
     const menuSections = finalMenuText ? parseMenuText(finalMenuText) : [];
 
     const leadWithImages: Lead = {
@@ -32,6 +34,7 @@ export async function POST(req: NextRequest) {
       uploadedImages: images && images.length > 0 ? images : lead.uploadedImages,
       realReviews,
       menuText: finalMenuText,
+      menuLink: finalMenuLink,
     };
 
     const content = await generateContent(leadWithImages, comment);

@@ -311,6 +311,13 @@ ${philosophyImage ? `
         </div>
       </div>`).join("")}
     </div>
+    ${lead.menuLink ? `
+    <div class="mt-8 text-center">
+      <a href="${escapeHtml(lead.menuLink)}" target="_blank" class="inline-block px-6 py-3 r-card font-medium btn-primary hover-scale">
+        View Full Menu
+      </a>
+    </div>
+    ` : ""}
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu current as of your last update — prices and availability may change.</p>
     ` : R ? `
     <div class="flex flex-wrap gap-2 justify-center mb-10">
@@ -327,6 +334,13 @@ ${philosophyImage ? `
         </div>
       </div>` : "")).join("") || `<p class="text-sm sm:col-span-2 text-center" style="${mutedStyle}">Ask us about our ${tab.toLowerCase()} selection.</p>`}
     </div>`).join("")}
+    ${lead.menuLink ? `
+    <div class="mt-8 text-center">
+      <a href="${escapeHtml(lead.menuLink)}" target="_blank" class="inline-block px-6 py-3 r-card font-medium btn-primary hover-scale">
+        View Full Menu
+      </a>
+    </div>
+    ` : ""}
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu items, availability, and pricing vary — please ask our team for current details.</p>
     ` : `
     <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">

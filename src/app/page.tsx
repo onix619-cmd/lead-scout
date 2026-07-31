@@ -81,12 +81,15 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [generating, setGenerating] = useState<Set<string>>(new Set());
   const [generatedUrls, setGeneratedUrls] = useState<Record<string, string>>({});
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<Record<string, string[]>>({});
   const [menuTexts, setMenuTexts] = useState<Record<string, string>>({});
+  const [menuLinks, setMenuLinks] = useState<Record<string, string>>({});
+  const [isExtracting, setIsExtracting] = useState<Record<string, boolean>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -162,6 +165,36 @@ export default function Dashboard() {
     setImages((prev) => ({ ...prev, [placeId]: dataUrls }));
   }
 
+  async function handleMenuExtraction(placeId: string, file: File) {
+    setIsExtracting((prev) => ({ ...prev, [placeId]: true }));
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/extract-menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64 }),
+      });
+
+      const data = await res.json();
+      if (data.menuText) {
+        setMenuTexts((prev) => ({ ...prev, [placeId]: data.menuText }));
+      } else if (data.error) {
+        alert("Failed to extract menu: " + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error extracting menu from image.");
+    } finally {
+      setIsExtracting((prev) => ({ ...prev, [placeId]: false }));
+    }
+  }
+
   async function handleGenerate(lead: Lead, withComment?: boolean) {
     setGenerating((prev) => new Set(prev).add(lead.placeId));
     setGenErrors((prev) => ({ ...prev, [lead.placeId]: "" }));
@@ -173,6 +206,7 @@ export default function Dashboard() {
           lead,
           images: images[lead.placeId],
           menuText: menuTexts[lead.placeId],
+          menuLink: menuLinks[lead.placeId],
           comment: withComment ? comments[lead.placeId] : undefined,
         }),
       });
@@ -609,6 +643,30 @@ export default function Dashboard() {
                           One item per line: &quot;Name - $Price&quot;. Use &quot;## Category&quot; for section headers.
                         </p>
                       </details>
+                      <details className="w-full mt-2">
+                        <summary className="text-[11px] text-neutral-400 border border-neutral-700 px-3 py-1.5 text-center cursor-pointer hover:bg-neutral-900 list-none">
+                          Add Menu Link
+                        </summary>
+                        <input
+                          type="url"
+                          value={menuLinks[lead.placeId] ?? ""}
+                          onChange={(e) => setMenuLinks(prev => ({ ...prev, [lead.placeId]: e.target.value }))}
+                          placeholder="https://example.com/menu"
+                          className="w-full mt-1.5 bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
+                        />
+                      </details>
+                      <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900 mt-2">
+                        {isExtracting[lead.placeId] ? "Extracting from image..." : "Extract menu from image"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={isExtracting[lead.placeId]}
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleMenuExtraction(lead.placeId, e.target.files[0]);
+                          }}
+                        />
+                      </label>
                       {generatedUrls[lead.placeId] ? (
                         <a
                           href={generatedUrls[lead.placeId]}
