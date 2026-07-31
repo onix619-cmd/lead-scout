@@ -321,17 +321,6 @@ ${philosophyImage ? `
   </div>
 </section>
 
-<!-- Gallery -->
-${galleryImages.length > 0 ? `
-<section id="gallery" class="py-20 reveal">
-  <div class="max-w-6xl mx-auto px-6">
-    ${sectionHeading("Gallery", "A Look Inside", false)}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      ${galleryImages.map((img) => `<img src="${img}" class="w-full h-40 sm:h-52 object-cover r-card hover-scale" />`).join("")}
-    </div>
-  </div>
-</section>` : ""}
-
 <!-- Reviews -->
 <section id="reviews" class="py-20 text-center reveal" style="background:${theme.dark};">
   <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Reviews</p>
