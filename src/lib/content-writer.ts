@@ -13,18 +13,14 @@ const MODEL = "gemini-flash-latest";
 function showcaseInstructions(type: ReturnType<typeof detectTemplateType>) {
   switch (type) {
     case "restaurant":
-      return `"showcaseItems" should be 4-5 example SIGNATURE DISH categories a
-restaurant like this would plausibly feature (e.g. "Wood-Fired Mains",
-"Handmade Pasta", "Seasonal Starters") — general dish categories, NOT
-specific invented dish names, prices, or ingredients you don't actually
-know. Each item: {"name": short category name, "description": 1 sentence
-about the style/experience, "tag": one of "Chef's Pick" | "" }`;
-    case "coffee":
-      return `"showcaseItems" should be 4-5 standard coffee-shop drink
-categories (e.g. "Espresso", "Cold Brew", "Seasonal Latte", "Pour Over") —
-universal drink types, not invented proprietary recipes. Each item:
-{"name": drink category, "description": 1 short sensory sentence, "tag":
-"Popular" | "" }`;
+      return `"showcaseItems" should be 4-5 example MENU CATEGORIES appropriate
+to this specific business's type (e.g. a pizzeria: "Wood-Fired Pizzas",
+"Fresh Salads"; a bakery: "Fresh Breads", "Pastries"; a coffee shop:
+"Espresso Drinks", "Cold Brew"; a bar: "Craft Cocktails", "Small Plates") —
+general categories, NOT specific invented dish names, prices, or ingredients
+you don't actually know. Each item: {"name": short category name,
+"description": 1 sentence about the style/experience, "tag": one of
+"Chef's Pick" | "Popular" | "" }`;
     case "icecream":
       return `"showcaseItems" should be 4-5 playful ice cream flavor
 CATEGORIES (e.g. "Classic Chocolate", "Fruity Sorbet", "Premium Small-Batch",
@@ -66,6 +62,9 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
   "tagline": "string, under 10 words",
   "aboutUs": "string, 2-3 sentences, the business's story/mission",
   "secondaryAbout": "string, 2-3 sentences, a warmer detail (e.g. what the team/owner cares about) — do not invent named people",
+  "philosophyHeading": "string, under 8 words, an evocative short phrase capturing this business's approach to their craft (fresh wording each time, not a cliché copy-pasted line)",
+  "philosophyText": "string, 2 sentences expanding on the philosophy heading",
+  "finalCtaHeading": "string, under 8 words, an inviting closing headline (e.g. an invitation to visit/book)",
   "seoTitle": "string, under 60 characters, include the business name and city",
   "metaDescription": "string, under 155 characters",
   "highlights": ["3 to 4 short phrases, each under 8 words"],

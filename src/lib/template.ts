@@ -1,5 +1,6 @@
-import { GeneratedContent, Lead } from "./types";
+import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
+import { countMenuItems } from "./menu";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -24,7 +25,11 @@ function schemaTypeFor(themeKey: string) {
   return "LocalBusiness";
 }
 
-export function generateLandingPageHTML(lead: Lead, content: GeneratedContent): string {
+export function generateLandingPageHTML(
+  lead: Lead,
+  content: GeneratedContent,
+  menuSections: MenuSection[] = []
+): string {
   const themeKey = detectThemeKey(lead.category, lead.name);
   const theme = getTheme(themeKey, lead.name);
   const R = themeKey === "restaurant"; // full dark, elegant/gold variant
@@ -39,6 +44,19 @@ export function generateLandingPageHTML(lead: Lead, content: GeneratedContent): 
       ? [lead.photoUrl]
       : [];
   const heroImage = galleryImages[0] ?? null;
+  const philosophyImage = galleryImages[1] ?? galleryImages[0] ?? null;
+  const finalCtaImage = galleryImages[2] ?? galleryImages[0] ?? null;
+
+  const dining = lead.diningOptions ?? {};
+  const diningBadges = [
+    dining.dineIn ? "Dine-In" : null,
+    dining.takeout ? "Takeout" : null,
+    dining.delivery ? "Delivery" : null,
+    dining.outdoorSeating ? "Outdoor Seating" : null,
+    dining.servesBeer || dining.servesWine ? "Beer & Wine" : null,
+  ].filter(Boolean) as string[];
+
+  const menuItemCount = countMenuItems(menuSections);
 
   const starsHtml = (count: number) =>
     Array.from({ length: 5 })
@@ -66,20 +84,12 @@ export function generateLandingPageHTML(lead: Lead, content: GeneratedContent): 
     ${R ? `<div class="${center ? "mx-auto" : ""} w-12 h-[2px] mb-8" style="background:var(--primary);"></div>` : ""}
   `;
 
-  const navLinks = R
-    ? [
-        ["#about", "L'Ambiance".replace("L'Ambiance", "About")],
-        ["#featured", theme.labels.menu],
-        ["#story", "Our Story"],
-        ["#reviews", "Reviews"],
-      ]
-    : [
-        ["#about", "About"],
-        ["#featured", theme.labels.menu],
-        ["#gallery", "Gallery"],
-        ["#reviews", "Reviews"],
-        ["#contact", "Contact"],
-      ];
+  const navLinks: [string, string][] = [
+    ["#top", "Home"],
+    ["#about", "About Us"],
+    ["#featured", "Menu"],
+    ["#contact", "Contact"],
+  ];
 
   const schema = {
     "@context": "https://schema.org",
@@ -133,7 +143,6 @@ ${theme.googleFontsUrl ? `<link rel="preconnect" href="https://fonts.googleapis.
   ` : `
   .parallax { background-attachment: fixed; }
   `}
-  html.dark-mode body { background: #0a0a0a; color: #e5e5e5; }
   .accordion-content { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
   .accordion.open .accordion-content { max-height: 300px; }
   .accordion.open .chevron { transform: rotate(180deg); }
@@ -158,7 +167,6 @@ ${theme.playful ? `
     <div class="hidden sm:flex items-center gap-6 text-sm">
       ${navLinks.map(([href, label]) => `<a href="${href}" class="hover:opacity-80">${escapeHtml(label)}</a>`).join("")}
     </div>
-    <button onclick="document.documentElement.classList.toggle('dark-mode')" class="hidden sm:inline text-xs border border-white/30 rounded-full px-3 py-1 mr-2">Dark mode</button>
     <a href="#reserve" class="btn-primary text-sm font-medium px-4 py-2 r-card">${theme.labels.reserveCta}</a>
   </div>
 </nav>
@@ -166,7 +174,7 @@ ${theme.playful ? `
 <!-- Hero -->
 <header id="top" class="relative pt-16" style="background:var(--dark);">
   ${heroImage
-    ? `<img src="${heroImage}" alt="${escapeHtml(lead.name)}" class="w-full h-[85vh] object-cover opacity-45 ${theme.playful ? "" : "parallax"}" />`
+    ? `<img src="${heroImage}" alt="${escapeHtml(lead.name)}" class="w-full h-[85vh] object-cover opacity-45 blur-sm scale-105 ${theme.playful ? "" : "parallax"}" />`
     : `<div class="w-full h-[85vh]" style="background: radial-gradient(circle at 30% 20%, ${theme.primary}33, transparent 55%), radial-gradient(circle at 80% 80%, ${theme.primary}22, transparent 50%), ${theme.dark};"></div>`}
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
     ${R ? `<span class="inline-flex items-center gap-2 border border-white/20 rounded-full px-4 py-1.5 text-xs uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
@@ -174,8 +182,9 @@ ${theme.playful ? `
     <p class="text-white/90 text-lg sm:text-xl mt-4 max-w-xl">${escapeHtml(content.tagline)}</p>
     ${!R ? `<p class="text-white/70 text-sm mt-2 uppercase tracking-widest">${escapeHtml(lead.category)}</p>` : ""}
     <div class="mt-8 flex flex-wrap gap-3 justify-center">
-      <a href="#reserve" class="px-6 py-3 r-card font-medium btn-primary hover-scale">${theme.labels.reserveCta}</a>
-      <a href="#featured" class="px-6 py-3 r-card bg-white/10 text-white font-medium border border-white/40 hover-scale">View ${theme.labels.menu}</a>
+      ${wa ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to place an order for pickup/delivery.`)}" target="_blank" class="px-6 py-3 r-card font-medium btn-primary hover-scale">Order Now</a>` : ""}
+      <a href="#reserve" class="px-6 py-3 r-card ${wa ? "bg-white/10 text-white border border-white/40" : "font-medium btn-primary"} hover-scale">Reservation</a>
+      ${wa ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to ask about hosting a private event.`)}" target="_blank" class="px-6 py-3 r-card bg-white/10 text-white font-medium border border-white/40 hover-scale">Private Events</a>` : ""}
     </div>
     ${R ? `<div class="w-16 h-[1px] bg-white/20 my-6"></div>` : ""}
     <div class="flex flex-wrap gap-4 sm:gap-8 justify-center items-center text-white/80 text-xs">
@@ -200,6 +209,18 @@ ${R ? `
   </div>
 </section>` : ""}
 
+<!-- Our Philosophy -->
+${philosophyImage ? `
+<section class="max-w-6xl mx-auto px-6 py-20 grid sm:grid-cols-2 gap-10 items-center reveal">
+  <img src="${philosophyImage}" class="w-full h-72 sm:h-96 object-cover r-card" alt="${escapeHtml(lead.name)}" />
+  <div>
+    <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Our Philosophy</p>
+    <h2 class="text-3xl font-semibold mb-4 font-display">${escapeHtml(content.philosophyHeading)}</h2>
+    ${R ? `<div class="w-12 h-[2px] mb-5" style="background:var(--primary);"></div>` : ""}
+    <p class="leading-relaxed ${mutedClass}" style="${mutedStyle}">${escapeHtml(content.philosophyText)}</p>
+  </div>
+</section>` : ""}
+
 <!-- About -->
 <section id="about" class="max-w-6xl mx-auto px-6 py-20 grid sm:grid-cols-5 gap-10 reveal">
   <div class="sm:col-span-3">
@@ -218,7 +239,6 @@ ${R ? `
     <blockquote class="r-card p-6 mt-6" style="${cardStyle}">
       <p class="text-xl mb-2" style="color:var(--primary);">"</p>
       <p class="italic" style="${mutedStyle}">${escapeHtml(content.tagline)}</p>
-      <p class="text-xs uppercase tracking-widest mt-4" style="color:var(--primary);">Our Philosophy</p>
     </blockquote>`}
   </div>
   <div class="sm:col-span-2 r-card p-6 h-fit" style="${R ? cardStyle : "background:var(--accent);"}">
@@ -240,11 +260,29 @@ ${R ? `
   </div>
 </section>
 
-<!-- Featured / Signature / Flavors -->
+<!-- Digital Menu -->
 <section id="featured" class="py-20 reveal ${!R ? "bg-accent" : ""}" style="${sectionAltStyle}">
   <div class="max-w-6xl mx-auto px-6">
-    ${sectionHeading(R ? "Flavour & Tradition" : theme.labels.featured, R ? "Menu Highlights" : "What We're Known For")}
-    ${R ? `
+    ${sectionHeading(R ? "Flavour & Tradition" : theme.labels.featured, "Digital Menu")}
+    ${menuSections.length > 0 ? `
+    <div class="space-y-12">
+      ${menuSections.map((section) => `
+      <div>
+        ${section.category ? `<h3 class="text-xl font-semibold mb-5 font-display" style="color:var(--primary);">${escapeHtml(section.category)}</h3>` : ""}
+        <div class="grid sm:grid-cols-2 gap-4">
+          ${section.items.map((item) => `
+          <div class="flex items-baseline justify-between gap-4 r-card p-4" style="${cardStyle}${!R ? "background:#fff;" : ""}">
+            <div class="min-w-0">
+              <p class="font-medium font-display">${escapeHtml(item.name)}</p>
+              ${item.description ? `<p class="text-xs mt-0.5" style="${mutedStyle}">${escapeHtml(item.description)}</p>` : ""}
+            </div>
+            ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:var(--primary);">$${escapeHtml(item.price)}</span>` : ""}
+          </div>`).join("")}
+        </div>
+      </div>`).join("")}
+    </div>
+    <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu current as of your last update — prices and availability may change.</p>
+    ` : R ? `
     <div class="flex flex-wrap gap-2 justify-center mb-10">
       ${["Starters", "Mains", "Desserts"].map((tab, i) => `
       <button type="button" onclick="showTab(${i})" id="tab-btn-${i}" class="menu-tab-btn text-xs uppercase tracking-wide px-5 py-2 rounded-full border ${i === 0 ? "font-semibold" : ""}" style="${i === 0 ? "background:var(--primary); color:#0d0c0a; border-color:var(--primary);" : "border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.7);"}">${tab}</button>`).join("")}
@@ -264,12 +302,22 @@ ${R ? `
     <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
       ${content.highlights.map((h, i) => `
       <div class="${cardClass} r-card p-5 hover-scale" style="${cardStyle}">
-        <div class="text-2xl mb-3">${theme.playful ? ["🍦", "🍨", "🍧", "🍫"][i % 4] : themeKey === "coffee" ? ["☕", "🥐", "🍰", "🫘"][i % 4] : ["🍽️", "🍷", "👨‍🍳", "⭐"][i % 4]}</div>
+        <div class="text-2xl mb-3">${theme.playful ? ["🍦", "🍨", "🍧", "🍫"][i % 4] : ["🍽️", "🍷", "👨‍🍳", "⭐"][i % 4]}</div>
         <p class="font-medium">${escapeHtml(h)}</p>
       </div>`).join("")}
     </div>
-    <p class="text-xs text-slate-500 mt-6">Ask us about our full ${themeKey === "coffee" ? "drink and food" : "current"} menu in person or by phone.</p>
+    <p class="text-xs text-slate-500 mt-6">Ask us about our full current menu in person or by phone.</p>
     `}
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="py-16 reveal" style="background:${theme.dark}; color:${theme.text};">
+  <div class="max-w-5xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+    ${lead.rating ? `<div><p class="text-3xl font-bold font-display" style="color:var(--primary);">${lead.rating}★</p><p class="text-xs uppercase tracking-widest mt-1" style="opacity:.6;">Google Rating</p></div>` : ""}
+    ${lead.reviewCount ? `<div><p class="text-3xl font-bold font-display" style="color:var(--primary);">${lead.reviewCount}+</p><p class="text-xs uppercase tracking-widest mt-1" style="opacity:.6;">Reviews</p></div>` : ""}
+    ${menuItemCount > 0 ? `<div><p class="text-3xl font-bold font-display" style="color:var(--primary);">${menuItemCount}+</p><p class="text-xs uppercase tracking-widest mt-1" style="opacity:.6;">Menu Items</p></div>` : ""}
+    ${diningBadges.length > 0 ? `<div><p class="text-3xl font-bold font-display" style="color:var(--primary);">${diningBadges.length}</p><p class="text-xs uppercase tracking-widest mt-1" style="opacity:.6;">Dining Options</p></div>` : ""}
   </div>
 </section>
 
@@ -287,7 +335,7 @@ ${galleryImages.length > 0 ? `
 <!-- Reviews -->
 <section id="reviews" class="py-20 text-center reveal" style="background:${theme.dark};">
   <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Reviews</p>
-  <h2 class="text-3xl font-semibold mb-4 font-display" style="color:${theme.text};">What People Are Saying</h2>
+  <h2 class="text-3xl font-semibold mb-4 font-display" style="color:${theme.text};">Words from Our Guests</h2>
   <div class="text-3xl mb-2">${starsHtml(filledStars)}</div>
   <p style="color:${theme.text}; opacity:.8;">${lead.rating ?? "—"} out of 5 · ${lead.reviewCount} Google reviews</p>
 
@@ -405,6 +453,17 @@ ${galleryImages.length > 0 ? `
   <a href="${lead.mapsUrl}" target="_blank" class="inline-block px-6 py-3 r-card font-medium btn-primary hover-scale">Get Directions</a>
 </section>
 
+<!-- Final CTA -->
+<section class="relative reveal">
+  ${finalCtaImage
+    ? `<img src="${finalCtaImage}" class="w-full h-[50vh] object-cover opacity-40" alt="${escapeHtml(lead.name)}" style="background:${theme.dark};" />`
+    : `<div class="w-full h-[50vh]" style="background:${theme.dark};"></div>`}
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6" style="background:${theme.dark}66;">
+    <h2 class="text-3xl sm:text-4xl font-bold font-display" style="color:${theme.text};">${escapeHtml(content.finalCtaHeading)}</h2>
+    <a href="#reserve" class="mt-6 inline-block px-8 py-3 r-card font-medium btn-primary hover-scale">Book Your Table</a>
+  </div>
+</section>
+
 <!-- Footer -->
 <footer class="pt-16 pb-8" style="background:${theme.dark}; color:${theme.text};">
   <div class="max-w-6xl mx-auto px-6 grid sm:grid-cols-4 gap-10 text-sm">
@@ -422,6 +481,10 @@ ${galleryImages.length > 0 ? `
       <p class="text-xs uppercase tracking-widest font-semibold mb-3" style="color:var(--primary);">Contact</p>
       <p style="opacity:.8;">${escapeHtml(lead.address)}</p>
       ${lead.phone ? `<a href="tel:${lead.phone}" class="block mt-1" style="opacity:.8;">${escapeHtml(lead.phone)}</a>` : ""}
+      ${diningBadges.length > 0 ? `
+      <div class="flex flex-wrap gap-1.5 mt-3">
+        ${diningBadges.map((b) => `<span class="text-[10px] uppercase tracking-wide border rounded-full px-2 py-0.5" style="border-color:rgba(255,255,255,0.2); opacity:.75;">${escapeHtml(b)}</span>`).join("")}
+      </div>` : ""}
     </div>
     <div>
       <p class="text-xs uppercase tracking-widest font-semibold mb-3" style="color:var(--primary);">${theme.labels.reserveCta}</p>

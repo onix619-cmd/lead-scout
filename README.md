@@ -118,6 +118,44 @@ Places data, but double check as this grows).
 
 ## A note on the generated landing pages
 
+The Reviews section now pulls up to 3 real Google reviews for the business
+(via the Places API's own review data) and shows them with the reviewer's
+name and star rating, alongside the aggregate rating — these are genuine
+reviewer text, not AI-generated, shown with attribution as Google's API
+terms require. If a business has no reviews with text, the section just
+shows the aggregate rating and a link to Google.
+
+The template auto-detects the business type from its Google category (and
+name) and picks one of three visual themes:
+
+- **Restaurant** — elegant/luxury: warm dark palette, Playfair Display +
+  Inter typography, parallax hero.
+- **Coffee shop** — cozy: coffee-brown/cream/charcoal palette, Fraunces +
+  Poppins typography.
+- **Ice cream shop** — playful: pastel pink palette, rounded shapes, Baloo 2
+  typography, floating sprinkle animations.
+- Anything else falls back to the general professional template from
+  before.
+
+All themes share: sticky glass nav, scroll-reveal animations, hover-scale
+cards, floating Reserve/Call/WhatsApp buttons, dark-mode toggle, a
+schema.org listing + Open Graph tags for SEO, hours table, photo gallery,
+reviews summary, the WhatsApp reservation/order form, FAQ, contact section,
+and a footer with a (non-functional, visual-only) newsletter signup.
+
+**Deliberately left out**, because building them accurately would mean
+either inventing facts about the business or wiring up a paid third-party
+integration this app doesn't have accounts for:
+- Specific menu items with real prices, dietary tags, or calories — the
+  "Featured" section shows the AI-generated highlights as icons/cards
+  instead, with a line pointing people to ask about the full menu in person.
+- Chef bio/awards, and a real events calendar — no real data source for these.
+- Delivery partner logos (Uber Eats, DoorDash, etc.) — would need real
+  partner accounts.
+- Google Calendar booking integration — needs OAuth setup per business.
+- Multi-language switcher — no translated copy to switch to.
+- Loyalty program / gift cards — needs real payment processing.
+
 Colors are currently assigned per-business from a small fixed palette (not
 pulled from an actual logo yet) — a nice upgrade for later once you want it.
 The AI is instructed not to invent specific menu items or prices it doesn't

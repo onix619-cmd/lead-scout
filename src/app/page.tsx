@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [generatedUrls, setGeneratedUrls] = useState<Record<string, string>>({});
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<Record<string, string[]>>({});
+  const [menuTexts, setMenuTexts] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -171,6 +172,7 @@ export default function Dashboard() {
         body: JSON.stringify({
           lead,
           images: images[lead.placeId],
+          menuText: menuTexts[lead.placeId],
           comment: withComment ? comments[lead.placeId] : undefined,
         }),
       });
@@ -579,6 +581,23 @@ export default function Dashboard() {
                           onChange={(e) => handleImageUpload(lead.placeId, e.target.files)}
                         />
                       </label>
+                      <details className="w-full">
+                        <summary className="text-[11px] text-neutral-400 border border-neutral-700 px-3 py-1.5 text-center cursor-pointer hover:bg-neutral-900 list-none">
+                          {menuTexts[lead.placeId]?.trim() ? "Menu added ✓" : "Paste real menu (optional)"}
+                        </summary>
+                        <textarea
+                          value={menuTexts[lead.placeId] ?? ""}
+                          onChange={(e) =>
+                            setMenuTexts((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
+                          }
+                          placeholder={"## Starters\nCaesar Salad - $12\nSoup of the Day - $8\n\n## Mains\nGrilled Salmon - $24"}
+                          rows={5}
+                          className="w-full mt-1.5 bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 placeholder-neutral-600 focus:outline-none focus:border-orange-500"
+                        />
+                        <p className="text-[10px] text-neutral-500 mt-1">
+                          One item per line: "Name - $Price". Use "## Category" for section headers.
+                        </p>
+                      </details>
                       {generatedUrls[lead.placeId] ? (
                         <a
                           href={generatedUrls[lead.placeId]}

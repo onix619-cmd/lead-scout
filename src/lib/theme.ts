@@ -1,3 +1,5 @@
+import { detectTemplateType } from "./template-type";
+
 export type ThemeKey = "restaurant" | "coffee" | "icecream" | "generic";
 
 export type Theme = {
@@ -28,12 +30,7 @@ function paletteFor(name: string, palettes: typeof RESTAURANT_PALETTES) {
 }
 
 export function detectThemeKey(category: string, name: string): ThemeKey {
-  const s = `${category} ${name}`.toLowerCase();
-  if (/ice cream|gelato|frozen yogurt|creamery|glacier/.test(s)) return "icecream";
-  if (/coffee|cafe|café|espresso|roaster/.test(s)) return "coffee";
-  if (/restaurant|bistro|pizza|steakhouse|sushi|diner|eatery|grill|bar\b|brasserie|trattoria|BBQ|noodle|ramen|taqueria/.test(s))
-    return "restaurant";
-  return "generic";
+  return detectTemplateType(category);
 }
 
 export function getTheme(key: ThemeKey, businessName: string): Theme {

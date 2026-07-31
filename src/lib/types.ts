@@ -10,6 +10,15 @@ export type Business = {
   openingHours: string[];
   mapsUrl: string;
   photoUrl: string | null;
+  diningOptions?: {
+    takeout?: boolean;
+    delivery?: boolean;
+    dineIn?: boolean;
+    reservable?: boolean;
+    outdoorSeating?: boolean;
+    servesBeer?: boolean;
+    servesWine?: boolean;
+  };
 };
 
 export type WebsiteScore = {
@@ -31,12 +40,16 @@ export type Lead = Business & {
   socialLinks?: { instagram?: string; facebook?: string };
   uploadedImages?: string[]; // data URLs, user-provided
   realReviews?: { authorName: string; rating: number; text: string; relativeTime: string }[];
+  menuText?: string; // raw menu the user pasted in, real data, parsed at generation time
 };
 
 export type GeneratedContent = {
   tagline: string;
   aboutUs: string;
   secondaryAbout: string; // chef intro / roasting story / fun shop detail
+  philosophyHeading: string;
+  philosophyText: string;
+  finalCtaHeading: string;
   seoTitle: string;
   metaDescription: string;
   highlights: string[]; // 3-4 short selling points (menu items or services)
@@ -44,3 +57,6 @@ export type GeneratedContent = {
   faq: { question: string; answer: string }[];
   googleBusinessDescription: string;
 };
+
+export type MenuItem = { name: string; price?: string; description?: string };
+export type MenuSection = { category?: string; items: MenuItem[] };

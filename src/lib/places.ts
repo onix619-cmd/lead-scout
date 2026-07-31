@@ -15,6 +15,13 @@ const FIELD_MASK = [
   "places.googleMapsUri",
   "places.photos",
   "places.primaryTypeDisplayName",
+  "places.takeout",
+  "places.delivery",
+  "places.dineIn",
+  "places.reservable",
+  "places.outdoorSeating",
+  "places.servesBeer",
+  "places.servesWine",
   "nextPageToken",
 ].join(",");
 
@@ -34,6 +41,15 @@ function mapPlace(p: any, apiKey: string): Business {
       p.photos && p.photos.length > 0
         ? `${PLACES_BASE}/${p.photos[0].name}/media?maxWidthPx=800&key=${apiKey}`
         : null,
+    diningOptions: {
+      takeout: p.takeout,
+      delivery: p.delivery,
+      dineIn: p.dineIn,
+      reservable: p.reservable,
+      outdoorSeating: p.outdoorSeating,
+      servesBeer: p.servesBeer,
+      servesWine: p.servesWine,
+    },
   };
 }
 
