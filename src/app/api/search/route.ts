@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchBusinesses } from "@/lib/places";
+import { searchBusinessesWide } from "@/lib/places";
 import { geocodeAddress } from "@/lib/geocode";
 import { analyzeWebsite, priorityFromScore } from "@/lib/analyzer";
 import { Lead } from "@/lib/types";
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       minRating = 0,
       includeNoWebsite = true,
       includeOutdated = true,
-      maxResults = 50,
+      maxResults = 100,
     } = body;
 
     if (!category) {
@@ -35,14 +35,14 @@ export async function POST(req: NextRequest) {
     let center;
 
     if (mode === "province") {
-      businesses = await searchBusinesses({
+      businesses = await searchBusinessesWide({
         query: `${category} in ${province}, Canada`,
         minRating,
         maxResults,
       });
     } else {
       center = await geocodeAddress(address);
-      businesses = await searchBusinesses({
+      businesses = await searchBusinessesWide({
         query: category,
         minRating,
         maxResults,

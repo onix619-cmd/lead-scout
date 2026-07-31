@@ -132,7 +132,7 @@ export default function Dashboard() {
           minRating,
           includeNoWebsite,
           includeOutdated,
-          maxResults: 50,
+          maxResults: 100,
         }),
       });
       const data = await res.json();
@@ -458,7 +458,7 @@ export default function Dashboard() {
             {loading ? "Searching…" : "Search"}
           </button>
           <p className="text-xs text-neutral-500 mt-2">
-            Fetches up to 50 results within the chosen radius, sorted by priority.
+            Fetches up to 100 results within the chosen radius (using a few overlapping sub-searches), sorted by priority.
           </p>
         </form>
 

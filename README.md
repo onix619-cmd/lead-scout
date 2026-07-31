@@ -106,6 +106,18 @@ Open your Vercel URL, pick a category and city (e.g. "Restaurants" /
   missing (mobile-friendly, WhatsApp, reservations, etc.) — this is the same
   list you'd use in an outreach email.
 
+## A note on search size (up to 100 results)
+
+Google's Places API hard-caps a single search at 60 results — that's a
+fixed platform limit, not something any setting or paid tier raises. To
+reach up to 100, address+radius searches now run the same query from
+several overlapping points within your radius and merge the unique
+businesses found. This means noticeably more Google API calls per search
+than before (roughly 3-5x) — worth knowing if you're watching usage or
+cost on your Google Cloud project. Whole-province searches still cap at 60,
+since there's no sensible way to subdivide "the whole province" the same
+way.
+
 ## A note on Google's data rules
 
 Google's Places API terms restrict how you can store/display/reuse this
