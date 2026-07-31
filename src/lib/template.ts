@@ -83,6 +83,9 @@ export function generateLandingPageHTML(
   const dividerStyle = R ? "border-color: rgba(255,255,255,0.08);" : "";
   const radiusOverride = isB ? "0px" : theme.radius;
   const primaryColor = isB ? "#fe4900" : theme.primary;
+  const btnGradient = isB
+    ? "linear-gradient(90deg, #fe4900, #fd2d00)"
+    : "linear-gradient(90deg, #fdbe03, #fe4900)";
 
   const sectionHeading = (overline: string, title: string, center = true) => `
     <p class="text-xs uppercase tracking-widest font-semibold mb-2 ${center ? "text-center" : ""}" style="color:var(--primary);">${escapeHtml(overline)}</p>
@@ -131,7 +134,7 @@ ${theme.googleFontsUrl ? `<link rel="preconnect" href="https://fonts.googleapis.
   :root {
     --primary: ${primaryColor}; --accent: ${theme.accent}; --dark: ${theme.dark}; --text: ${theme.text}; --radius: ${radiusOverride};
   }
-  .btn-primary { background: var(--primary); ${R ? "color:#0d0c0a;" : "color:#fff;"} }
+  .btn-primary { background: ${btnGradient}; ${R ? "color:#0d0c0a;" : "color:#fff;"} }
   .gradient-text {
     background: linear-gradient(90deg, var(--primary), ${R ? theme.text : "#334155"} 140%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
