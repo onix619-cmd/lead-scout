@@ -28,11 +28,13 @@ function schemaTypeFor(themeKey: string) {
 export function generateLandingPageHTML(
   lead: Lead,
   content: GeneratedContent,
-  menuSections: MenuSection[] = []
+  menuSections: MenuSection[] = [],
+  variant: "A" | "B" = Math.random() < 0.5 ? "A" : "B"
 ): string {
   const themeKey = detectThemeKey(lead.category, lead.name);
   const theme = getTheme(themeKey, lead.name);
   const R = themeKey === "restaurant"; // full dark, elegant/gold variant
+  const isB = R && variant === "B"; // second visual variant: sharp corners + accent color
   const wa = waLink(lead.phone);
   const waNum = waDigits(lead.phone);
   const filledStars = Math.round(lead.rating ?? 0);
@@ -58,13 +60,15 @@ export function generateLandingPageHTML(
 
   const menuItemCount = countMenuItems(menuSections);
 
+  const starColor = isB ? "#fe4900" : "#facc15";
   const starsHtml = (count: number) =>
     Array.from({ length: 5 })
-      .map((_, i) => `<span style="color:${i < count ? "#facc15" : "#4b5563"};">★</span>`)
+      .map((_, i) => `<span style="color:${i < count ? starColor : "#4b5563"};">★</span>`)
       .join("");
 
   // Conditional style snippets: R = fully dark elegant restaurant theme,
-  // other themes keep the lighter alternating-section layout.
+  // other themes keep the lighter alternating-section layout. Variant B
+  // uses sharp corners and the accent orange-red instead of gold/yellow.
   const bodyStyle = R ? `background:${theme.dark}; color:${theme.text};` : "";
   const bodyClass = R ? "" : "text-slate-800 bg-white";
   const cardStyle = R ? "background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);" : "";
@@ -77,10 +81,12 @@ export function generateLandingPageHTML(
   const sectionAltStyle = R ? `background:${theme.dark};` : "";
   const sectionAltClass = R ? "" : "bg-accent";
   const dividerStyle = R ? "border-color: rgba(255,255,255,0.08);" : "";
+  const radiusOverride = isB ? "0px" : theme.radius;
+  const primaryColor = isB ? "#fe4900" : theme.primary;
 
   const sectionHeading = (overline: string, title: string, center = true) => `
     <p class="text-xs uppercase tracking-widest font-semibold mb-2 ${center ? "text-center" : ""}" style="color:var(--primary);">${escapeHtml(overline)}</p>
-    <h2 class="text-3xl font-semibold mb-3 font-display ${center ? "text-center" : ""}">${escapeHtml(title)}</h2>
+    <h2 class="text-3xl font-semibold mb-3 font-display gradient-text ${center ? "text-center" : ""}">${escapeHtml(title)}</h2>
     ${R ? `<div class="${center ? "mx-auto" : ""} w-12 h-[2px] mb-8" style="background:var(--primary);"></div>` : ""}
   `;
 
@@ -123,9 +129,13 @@ ${theme.googleFontsUrl ? `<link rel="preconnect" href="https://fonts.googleapis.
   body { font-family: ${theme.fontBody}; }
   h1, h2, h3, .font-display { font-family: ${theme.fontHeading}; }
   :root {
-    --primary: ${theme.primary}; --accent: ${theme.accent}; --dark: ${theme.dark}; --text: ${theme.text}; --radius: ${theme.radius};
+    --primary: ${primaryColor}; --accent: ${theme.accent}; --dark: ${theme.dark}; --text: ${theme.text}; --radius: ${radiusOverride};
   }
   .btn-primary { background: var(--primary); ${R ? "color:#0d0c0a;" : "color:#fff;"} }
+  .gradient-text {
+    background: linear-gradient(90deg, var(--primary), ${R ? theme.text : "#334155"} 140%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
   .text-primary { color: var(--primary); }
   .bg-accent { background: var(--accent); }
   .bg-dark { background: var(--dark); }
@@ -178,7 +188,7 @@ ${theme.playful ? `
     : `<div class="w-full h-[85vh]" style="background: radial-gradient(circle at 30% 20%, ${theme.primary}33, transparent 55%), radial-gradient(circle at 80% 80%, ${theme.primary}22, transparent 50%), ${theme.dark};"></div>`}
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
     ${R ? `<span class="inline-flex items-center gap-2 border border-white/20 rounded-full px-4 py-1.5 text-xs uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
-    <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display">${escapeHtml(lead.name)}</h1>
+    <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display gradient-text">${escapeHtml(lead.name)}</h1>
     <p class="text-white/90 text-lg sm:text-xl mt-4 max-w-xl">${escapeHtml(content.tagline)}</p>
     ${!R ? `<p class="text-white/70 text-sm mt-2 uppercase tracking-widest">${escapeHtml(lead.category)}</p>` : ""}
     <div class="mt-8 flex flex-wrap gap-3 justify-center">
@@ -263,7 +273,7 @@ ${philosophyImage ? `
 <!-- Digital Menu -->
 <section id="featured" class="py-20 reveal ${!R ? "bg-accent" : ""}" style="${sectionAltStyle}">
   <div class="max-w-6xl mx-auto px-6">
-    ${sectionHeading(R ? "Flavour & Tradition" : theme.labels.featured, "Digital Menu")}
+    ${sectionHeading(R ? "Flavour & Tradition" : theme.labels.featured, "MENU")}
     ${menuSections.length > 0 ? `
     <div class="space-y-12">
       ${menuSections.map((section) => `
@@ -354,7 +364,7 @@ ${philosophyImage ? `
 </section>
 
 <!-- Reservation / Order -->
-<section id="reserve" class="py-20" style="${R ? `background:${theme.dark};` : "background:var(--accent);"}">
+<section id="reserve" class="py-20 reveal" style="${R ? `background:${theme.dark};` : "background:var(--accent);"}">
   <div class="max-w-5xl mx-auto px-6 grid sm:grid-cols-2 gap-10 items-start">
     <div>
       <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">${theme.labels.reserveCta}</p>
@@ -478,7 +488,10 @@ ${philosophyImage ? `
     <div>
       <p class="text-xs uppercase tracking-widest font-semibold mb-3" style="color:var(--primary);">${theme.labels.reserveCta}</p>
       <p class="mb-3" style="opacity:.8;">Reach out directly and we'll take care of the rest.</p>
-      ${wa ? `<a href="${wa}" target="_blank" class="inline-block btn-primary text-xs font-medium px-4 py-2 r-card">WhatsApp Direct</a>` : ""}
+      ${wa ? `<a href="${wa}" target="_blank" class="inline-flex items-center gap-2 btn-primary text-xs font-medium px-4 py-2 r-card">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.13h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Zm5.79 13.98c-.24.68-1.4 1.3-1.93 1.36-.53.06-1.02.31-3.43-.72-2.9-1.24-4.76-4.17-4.9-4.36-.14-.19-1.16-1.55-1.16-2.96 0-1.4.74-2.09 1-2.38.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.81 2 0.88 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.14-.28.29-.12.57.16.28.71 1.17 1.52 1.9 1.05.94 1.93 1.23 2.21 1.37.28.14.44.12.61-.07.16-.19.7-.81.89-1.09.19-.28.38-.23.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.68-.17 1.36Z"/></svg>
+        WhatsApp Direct
+      </a>` : ""}
     </div>
   </div>
   <div class="max-w-6xl mx-auto px-6 mt-10 pt-6 flex flex-wrap items-center justify-between gap-3 text-xs" style="border-top:1px solid rgba(255,255,255,0.08); opacity:.6;">
