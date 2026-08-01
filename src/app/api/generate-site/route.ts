@@ -4,7 +4,7 @@ import { generateLandingPageHTML } from "@/lib/template";
 import { deployToVercel } from "@/lib/deploy";
 import { getSupabase } from "@/lib/supabase";
 import { fetchPlaceReviews } from "@/lib/reviews";
-import { parseMenuText } from "@/lib/menu";
+import { parseMenuText, extractMenuFromWebsite } from "@/lib/menu";
 import { Lead } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -25,7 +25,13 @@ export async function POST(req: NextRequest) {
 
     const realReviews = lead.realReviews ?? (await fetchPlaceReviews(lead.placeId));
     const finalMenuText = menuText ?? lead.menuText;
-    const menuSections = finalMenuText ? parseMenuText(finalMenuText) : [];
+
+    let menuSections = finalMenuText ? parseMenuText(finalMenuText) : [];
+    let autoExtracted = false;
+    if (menuSections.length === 0 && lead.website) {
+      menuSections = await extractMenuFromWebsite(lead.website);
+      autoExtracted = menuSections.length > 0;
+    }
 
     const leadWithImages: Lead = {
       ...lead,
@@ -46,7 +52,7 @@ export async function POST(req: NextRequest) {
         .eq("place_id", leadWithImages.placeId);
     }
 
-    return NextResponse.json({ url });
+    return NextResponse.json({ url, menuAutoExtracted: autoExtracted, menuItemsFound: menuSections.reduce((s, sec) => s + sec.items.length, 0) });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json(
