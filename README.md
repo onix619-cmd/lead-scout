@@ -30,24 +30,11 @@ phase.
   `GOOGLE_PLACES_API_KEY` works for it too, nothing new to copy.
 - Address autocomplete (suggestions as you type) uses the same Places API
   (New) you already enabled — no extra setup needed.
-- A Gemini API key, **plus a one-time billing link** (see below — this is
-  now required by Google even to use the free-tier limits; usage within
-  those limits still costs $0):
-  1. Go to **aistudio.google.com/apikey**, sign in with the same Google
-     account as your Cloud project, click **Create API key**, choose the
-     same project you used for Places API, copy the key.
-  2. Go to **console.cloud.google.com/billing**, click **Link a billing
-     account** for that project. If you don't have one yet, add a payment
-     method — you will not be charged as long as you stay under Gemini's
-     free-tier limits (currently generous for this app's usage).
-  3. **Set a spend cap as a safety net:** in the same Billing section, go to
-     **Budgets & alerts → Create budget**, set it against this project, and
-     set the amount to something small like $5–10. This doesn't hard-block
-     spending by default, but Google will alert you by email if you're ever
-     about to exceed it — go to the budget's **Actions** settings to also
-     cap spend automatically if you want a hard stop.
-  4. It can take a few minutes for the new billing link to propagate before
-     the quota unlocks.
+- An xAI Grok API key (no Google billing link needed — separate provider
+  from the free-tier hassle Gemini had):
+  1. Go to **console.x.ai** and sign in / sign up.
+  2. Go to **API Keys** → **Create API Key**.
+  3. Copy the key immediately.
 - A **free** Vercel API token so the app can deploy generated sites for you:
   1. Go to **vercel.com/account/tokens**.
   2. Click **Create Token**, give it any name, no expiration (or pick one),
@@ -73,7 +60,7 @@ phase.
 2. Import the `lead-scout` GitHub repo you just created.
 3. Before clicking Deploy, open **Environment Variables** and add all of:
    - `GOOGLE_PLACES_API_KEY` = your Google Places API key
-   - `GEMINI_API_KEY` = your Gemini API key
+   - `XAI_API_KEY` = your xAI Grok API key
    - `VERCEL_API_TOKEN` = your Vercel token
 4. Click **Deploy**. In ~1 minute you'll get a URL like
    `https://lead-scout-yourname.vercel.app` — that's your dashboard.
