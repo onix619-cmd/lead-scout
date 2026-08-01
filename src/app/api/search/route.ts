@@ -81,8 +81,13 @@ export async function POST(req: NextRequest) {
     });
 
     filtered.sort((a, b) => {
-      const order = { high: 0, medium: 1, low: 2 };
-      return order[a.priority] - order[b.priority];
+      // No-website leads first, then websites ordered worst score to best
+      // (most outdated first) — a clearer "most in need of help" ordering
+      // than the old high/medium/low buckets alone.
+      if (!a.websiteScore.hasWebsite && b.websiteScore.hasWebsite) return -1;
+      if (a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 1;
+      if (!a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 0;
+      return a.websiteScore.score - b.websiteScore.score;
     });
 
     return NextResponse.json({ leads: filtered, center });
