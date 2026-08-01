@@ -1,7 +1,6 @@
 import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
-import { generateCoffeeLandingPageHTML } from "./template-coffee";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -33,11 +32,6 @@ export function generateLandingPageHTML(
   variant: "A" | "B" = Math.random() < 0.5 ? "A" : "B"
 ): string {
   const themeKey = detectThemeKey(lead.category, lead.name);
-
-  if (themeKey === "coffee") {
-    return generateCoffeeLandingPageHTML(lead, content, menuSections);
-  }
-
   const theme = getTheme(themeKey, lead.name);
   const R = themeKey === "restaurant"; // full dark, elegant/gold variant
   const isB = R && variant === "B"; // second visual variant: sharp corners + accent color
@@ -90,7 +84,7 @@ export function generateLandingPageHTML(
   const radiusOverride = isB ? "0px" : theme.radius;
   const primaryColor = isB ? "#fe4900" : theme.primary;
   const btnGradient = isB
-    ? "linear-gradient(90deg, #fe4900, #fdbe03)"
+    ? "linear-gradient(90deg, #fe4900, #fd2d00)"
     : "linear-gradient(90deg, #fdbe03, #fe4900)";
 
   const sectionHeading = (overline: string, title: string, center = true) => `
@@ -163,12 +157,13 @@ ${theme.googleFontsUrl ? `<link rel="preconnect" href="https://fonts.googleapis.
   }
   .pulse-dot { animation: pulseDot 2s infinite; }
   .nav-cta {
-    background-image: ${btnGradient};
+    background: var(--primary);
     background-size: 200% 100%;
     background-position: 0% 0%;
     transition: background-position .4s ease, transform .2s ease;
   }
   .nav-cta:hover {
+    background-image: linear-gradient(90deg, #fe4900, #180725);
     background-position: 100% 0%;
     transform: scale(1.04);
   }
@@ -213,7 +208,7 @@ ${theme.playful ? `
     : `<div class="w-full h-[85vh]" style="background: radial-gradient(circle at 30% 20%, ${theme.primary}33, transparent 55%), radial-gradient(circle at 80% 80%, ${theme.primary}22, transparent 50%), ${theme.dark};"></div>`}
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pt-16">
     ${R ? `<span class="inline-flex items-center gap-2.5 border border-white/20 rounded-full px-5 py-2 text-sm sm:text-base uppercase tracking-widest mb-6" style="color:var(--primary);"><span class="w-2 h-2 rounded-full pulse-dot" style="background:var(--primary);"></span>${escapeHtml(lead.category)} · ${escapeHtml(lead.address.split(",")[0])}</span>` : ""}
-    <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display gradient-text uppercase">${escapeHtml(lead.name)}</h1>
+    <h1 class="text-white text-4xl sm:text-6xl font-bold tracking-tight drop-shadow font-display gradient-text">${escapeHtml(lead.name)}</h1>
     <p class="text-white/90 text-lg sm:text-xl mt-4 max-w-xl">${escapeHtml(content.tagline)}</p>
     ${!R ? `<p class="text-white/70 text-sm mt-2 uppercase tracking-widest">${escapeHtml(lead.category)}</p>` : ""}
     <div class="mt-8 flex flex-wrap gap-3 justify-center">

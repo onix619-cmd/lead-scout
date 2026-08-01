@@ -128,34 +128,6 @@ reading Google's Places API Policies page and adjusting storage (the
 `leads` table above only stores what you need for CRM tracking, not full
 Places data, but double check as this grows).
 
-## Coffee shops now get their own distinct template
-
-Coffee shops are no longer folded into the dark restaurant template — they
-get a separate light, airy design (cream background, coffee-brown accents,
-Fraunces + Poppins typography) with its own section flow: hero, story +
-amenity chips (real dine-in/takeout/delivery/outdoor-seating data), a
-specialties grid, a numbered menu preview, gallery, real reviews, and a
-visit/footer section. Restaurants, pizza places, bakeries, bars, and fast
-food still share the dark elegant template from before; ice cream keeps its
-playful theme; everything else keeps the general template.
-
-## Auto menu extraction (best-effort)
-
-When you click Generate and haven't pasted a menu, the app now tries to
-auto-detect one from the business's own real website (if they have one) by
-scanning its visible text for "item ... $price" patterns. This only works
-when a site's menu is actual readable text — most restaurant sites show
-their menu as an image or PDF, which this can't read, so it'll often come
-up empty and fall back to the general highlight cards, same as before.
-
-Worth knowing: there's no official Google API that hands over structured
-menu + pricing data for arbitrary businesses. Google's Business Profile
-"Food Menus" API does support real structured menus, but only the
-business's own authenticated owner account can access it for their own
-listing — not a third-party tool like this one looking up other
-businesses. So pasting the real menu yourself remains the most reliable way
-to get accurate prices on the generated site.
-
 ## A note on the generated landing pages
 
 The Reviews section now pulls up to 3 real Google reviews for the business

@@ -568,14 +568,6 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
-
-                    {(images[lead.placeId]?.[0] || lead.photoUrl) && (
-                      <img
-                        src={images[lead.placeId]?.[0] || lead.photoUrl || ""}
-                        alt={lead.name}
-                        className="w-20 h-20 object-cover shrink-0 border border-neutral-800"
-                      />
-                    )}
                     <div className="flex flex-col items-end gap-2 shrink-0 w-52">
                       <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900">
                         {images[lead.placeId]?.length

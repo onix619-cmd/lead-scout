@@ -21,12 +21,6 @@ general categories, NOT specific invented dish names, prices, or ingredients
 you don't actually know. Each item: {"name": short category name,
 "description": 1 sentence about the style/experience, "tag": one of
 "Chef's Pick" | "Popular" | "" }`;
-    case "coffee":
-      return `"showcaseItems" should be 4-5 standard coffee-shop drink/food
-CATEGORIES (e.g. "Espresso Drinks", "Cold Brew", "Pastries", "Seasonal
-Specials") — universal categories, not invented proprietary recipes or
-prices. Each item: {"name": category name, "description": 1 short sensory
-sentence, "tag": "Signature" | "Popular" | "New" | "" }`;
     case "icecream":
       return `"showcaseItems" should be 4-5 playful ice cream flavor
 CATEGORIES (e.g. "Classic Chocolate", "Fruity Sorbet", "Premium Small-Batch",
