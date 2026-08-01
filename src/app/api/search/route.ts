@@ -81,19 +81,20 @@ export async function POST(req: NextRequest) {
     });
 
     filtered.sort((a, b) => {
-      const aNoWeb = !a.websiteScore.hasWebsite;
-      const bNoWeb = !b.websiteScore.hasWebsite;
-      if (aNoWeb && !bNoWeb) return -1;
-      if (!aNoWeb && bNoWeb) return 1;
-      
+      // No-website leads first, then websites ordered worst score to best
+      // (most outdated first) — a clearer "most in need of help" ordering
+      // than the old high/medium/low buckets alone.
+      if (!a.websiteScore.hasWebsite && b.websiteScore.hasWebsite) return -1;
+      if (a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 1;
+      if (!a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 0;
       return a.websiteScore.score - b.websiteScore.score;
     });
 
     return NextResponse.json({ leads: filtered, center });
-  } catch (err: unknown) {
+  } catch (err: any) {
     console.error(err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Something went wrong" },
+      { error: err?.message ?? "Something went wrong" },
       { status: 500 }
     );
   }
