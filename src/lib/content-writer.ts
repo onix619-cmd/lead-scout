@@ -1,7 +1,6 @@
 import { GeneratedContent, Lead } from "./types";
 import { detectTemplateType } from "./template-type";
 
-// Uses xAI's Grok API (OpenAI-compatible chat completions endpoint) or Google Gemini.
 const GROK_MODEL = "grok-3";
 const GEMINI_MODEL = "gemini-flash-latest";
 
@@ -41,7 +40,7 @@ export async function generateContent(
 ): Promise<GeneratedContent> {
   const apiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing API Key. Add XAI_API_KEY, GROK_API_KEY, or GEMINI_API_KEY to your environment variables.");
+    throw new Error("Missing API Key. Add XAI_API_KEY or GEMINI_API_KEY to your .env.local file.");
   }
 
   const type = detectTemplateType(lead.category);
@@ -75,24 +74,31 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
 }
 "showcaseItems" must be a JSON array matching the field described above.`;
 
-  if (apiKey.startsWith("xai-") || process.env.XAI_API_KEY || process.env.GROK_API_KEY) {
+  if (apiKey.startsWith("xai-")) {
     const res = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey.trim()}`,
       },
       body: JSON.stringify({
         model: GROK_MODEL,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: "You are a marketing copywriter. Return ONLY valid raw JSON with no markdown formatting." },
+          { role: "user", content: prompt }
+        ],
         temperature: 0.7,
         response_format: { type: "json_object" },
       }),
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Grok API error (${res.status}): ${text}`);
+      const errJson = await res.json().catch(() => ({}));
+      const errMessage = errJson?.error ?? (await res.text().catch(() => "Unknown error"));
+      if (typeof errMessage === "string" && errMessage.includes("credits")) {
+        throw new Error(`Grok API Error: Your xAI team account has no active credits/licenses. Please add credits at https://console.x.ai or use a Google Gemini key.`);
+      }
+      throw new Error(`Grok API Error (${res.status}): ${typeof errMessage === "string" ? errMessage : JSON.stringify(errMessage)}`);
     }
 
     const data = await res.json();
@@ -106,9 +112,9 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
     }
   }
 
-  // Fallback to Gemini
+  // Google Gemini API call
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey.trim()}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
