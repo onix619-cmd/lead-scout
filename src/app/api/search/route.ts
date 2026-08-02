@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
       address,
       radiusKm = 10,
       province,
-      mode = "address", // "address" | "province"
       minRating = 0,
       includeNoWebsite = true,
       includeOutdated = true,
@@ -24,31 +23,21 @@ export async function POST(req: NextRequest) {
     if (!category) {
       return NextResponse.json({ error: "category is required" }, { status: 400 });
     }
-    if (mode === "address" && !address) {
+    if (!address) {
       return NextResponse.json({ error: "address is required" }, { status: 400 });
     }
-    if (mode === "province" && !province) {
-      return NextResponse.json({ error: "province is required" }, { status: 400 });
-    }
 
-    let businesses;
-    let center;
-
-    if (mode === "province") {
-      businesses = await searchBusinessesWide({
-        query: `${category} in ${province}, Canada`,
-        minRating,
-        maxResults,
-      });
-    } else {
-      center = await geocodeAddress(address);
-      businesses = await searchBusinessesWide({
-        query: category,
-        minRating,
-        maxResults,
-        locationBias: { center, radiusMeters: radiusKm * 1000 },
-      });
-    }
+    // Province is appended to help geocoding disambiguate similarly-named
+    // streets/towns across Canada, even though the actual search area is
+    // still the address + radius.
+    const fullAddress = province ? `${address}, ${province}, Canada` : address;
+    const center = await geocodeAddress(fullAddress);
+    const businesses = await searchBusinessesWide({
+      query: category,
+      minRating,
+      maxResults,
+      locationBias: { center, radiusMeters: radiusKm * 1000 },
+    });
 
     const leads: Lead[] = await Promise.all(
       businesses.map(async (b) => {
@@ -81,8 +70,13 @@ export async function POST(req: NextRequest) {
     });
 
     filtered.sort((a, b) => {
-      const order = { high: 0, medium: 1, low: 2 };
-      return order[a.priority] - order[b.priority];
+      // No-website leads first, then websites ordered worst score to best
+      // (most outdated first) — a clearer "most in need of help" ordering
+      // than the old high/medium/low buckets alone.
+      if (!a.websiteScore.hasWebsite && b.websiteScore.hasWebsite) return -1;
+      if (a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 1;
+      if (!a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 0;
+      return a.websiteScore.score - b.websiteScore.score;
     });
 
     return NextResponse.json({ leads: filtered, center });

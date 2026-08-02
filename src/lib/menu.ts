@@ -62,3 +62,54 @@ export function parseMenuText(raw: string): MenuSection[] {
 export function countMenuItems(sections: MenuSection[]): number {
   return sections.reduce((sum, s) => sum + s.items.length, 0);
 }
+
+// Best-effort auto-extraction: fetches the business's own real website and
+// looks for plain-text "item ... $price" patterns, reusing the same parser
+// as the manual-paste flow. This only works when a site's menu is real
+// visible text (not an image or PDF, which is common) — when it can't find
+// enough matches, it returns an empty result and the manual-paste option
+// remains the reliable fallback. There is no official Google API that
+// returns structured menu+price data for arbitrary businesses (the
+// Google Business Profile "Food Menus" API exists, but only the business
+// owner's own authenticated account can access their own listing's menu —
+// it's not available to third-party tools like this one for other
+// businesses), so this website-text approach is the most honest "auto"
+// option available without fabricating anything.
+export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(url, {
+      redirect: "follow",
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; LeadScoutBot/1.0)" },
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const html = await res.text();
+
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<\/(p|div|li|tr|h[1-6]|br)>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&#39;|&rsquo;/g, "'")
+      .replace(/[ \t]+/g, " ")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n");
+
+    const sections = parseMenuText(text);
+    // Guard against false positives (random prices on a non-menu page) —
+    // only return results if we found a reasonable number of plausible items.
+    const total = countMenuItems(sections);
+    if (total < 4) return [];
+    return sections;
+  } catch {
+    return [];
+  }
+}
