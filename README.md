@@ -126,7 +126,30 @@ visit/footer section. Restaurants, pizza places, bakeries, bars, and fast
 food still share the dark elegant template from before; ice cream keeps its
 playful theme; everything else keeps the general template.
 
-## Auto menu extraction (best-effort)
+## Choosing your AI provider
+
+Every "Generate" button now has an **AI provider** dropdown right above it —
+**Groq**, **Gemini**, or **xAI (Grok)**. Whichever you pick is used for both
+the written copy and (if you've uploaded menu photos) reading the menu.
+Since you already have all three activated on Vercel, you can freely
+compare results or fall back to another if one is having issues. Required
+env vars for all three: `GROQ_API_KEY`, `GEMINI_API_KEY`, `XAI_API_KEY`.
+
+## Auto menu extraction from photos (new)
+
+Beyond pasting a menu manually, you can now upload actual photos of a menu
+(a phone photo of a printed menu, a screenshot from their Google listing,
+etc.) using "Upload photos," and the selected AI provider will read the
+real text in the image — item names and prices — into a proper menu
+section. It's instructed to only report what's actually legible and to
+leave out anything it can't read clearly, never to guess or invent. If
+nothing readable is found, it falls back the same way as before: try the
+business's own website text, then (if they have a real website) show a
+"View Full Menu ↗" button linking straight to it, instead of a generic
+placeholder message.
+
+Priority order when generating: pasted menu text → photos you uploaded →
+their own website's text → a link to their website → generic placeholder.
 
 When you click Generate and haven't pasted a menu, the app now tries to
 auto-detect one from the business's own real website (if they have one) by

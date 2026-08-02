@@ -157,6 +157,7 @@ ${heroImage ? `<meta property="og:image" content="${heroImage}" />` : ""}
   <p class="text-xs uppercase tracking-widest font-semibold mb-2 text-center" style="color:#c9a24b;">Morning to Afternoon</p>
   <h2 class="text-3xl font-semibold mb-3 text-center">A glimpse of the <span class="accent-italic">menu</span></h2>
   <p class="text-center text-[#5a4c3c] max-w-xl mx-auto mb-12">${menuSections.length > 0 ? "Ask about seasonal specials not listed here." : "Ask our team about our full menu in person or by phone."}</p>
+  ${menuSections.length === 0 && lead.website ? `<div class="text-center -mt-8 mb-10"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-full font-medium" style="background:#c9a24b; color:#241c15;">View Full Menu ↗</a></div>` : ""}
   <div class="grid sm:grid-cols-2 gap-x-12 gap-y-10">
     ${numberedCategories.slice(0, 4).map((section, i) => `
     <div>

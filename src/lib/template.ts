@@ -333,6 +333,7 @@ ${philosophyImage ? `
       </div>` : "")).join("") || `<p class="text-sm sm:col-span-2 text-center" style="${mutedStyle}">Ask us about our ${tab.toLowerCase()} selection.</p>`}
     </div>`).join("")}
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu items, availability, and pricing vary — please ask our team for current details.</p>
+    ${lead.website ? `<div class="text-center mt-4"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
     ` : `
     <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
       ${content.highlights.map((h, i) => `
@@ -341,7 +342,9 @@ ${philosophyImage ? `
         <p class="font-medium">${escapeHtml(h)}</p>
       </div>`).join("")}
     </div>
-    <p class="text-xs text-slate-500 mt-6">Ask us about our full current menu in person or by phone.</p>
+    ${lead.website
+      ? `<div class="text-center mt-6"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-lg font-medium text-white" style="background:var(--primary);">View Full Menu ↗</a></div>`
+      : `<p class="text-xs text-slate-500 mt-6">Ask us about our full current menu in person or by phone.</p>`}
     `}
   </div>
 </section>
