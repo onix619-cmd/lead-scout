@@ -1,14 +1,5 @@
 import { MenuItem, MenuSection } from "./types";
 
-// Parses plain-text menu the business owner/user pastes in directly.
-// Supported format (flexible, line by line):
-//   ## Starters          <- optional category header (## prefix)
-//   Caesar Salad - $12
-//   Soup of the Day $8.50
-//   Garlic Bread — 6      (em-dash or plain number also work)
-// Anything that doesn't look like "name ... price" is kept as a
-// description-only line under the previous item, or skipped if it's the
-// first line in a section.
 export function parseMenuText(raw: string): MenuSection[] {
   if (!raw || !raw.trim()) return [];
 
@@ -33,7 +24,6 @@ export function parseMenuText(raw: string): MenuSection[] {
 
     const match = line.match(priceRe);
     if (match) {
-      // Strip trailing price and any separator (-, —, :, $) before it.
       const namePart = line
         .slice(0, match.index)
         .replace(/[-–—:\$\€\£]\s*$/, "")
@@ -46,7 +36,6 @@ export function parseMenuText(raw: string): MenuSection[] {
       }
     }
 
-    // No price on this line — treat as a description continuing the last item.
     if (lastItem && !lastItem.description) {
       lastItem.description = line;
     } else if (line.length > 0) {
@@ -63,19 +52,7 @@ export function countMenuItems(sections: MenuSection[]): number {
   return sections.reduce((sum, s) => sum + s.items.length, 0);
 }
 
-// Best-effort auto-extraction: fetches the business's own real website and
-// looks for plain-text "item ... $price" patterns, reusing the same parser
-// as the manual-paste flow. This only works when a site's menu is real
-// visible text (not an image or PDF, which is common) — when it can't find
-// enough matches, it returns an empty result and the manual-paste option
-// remains the reliable fallback. There is no official Google API that
-// returns structured menu+price data for arbitrary businesses (the
-// Google Business Profile "Food Menus" API exists, but only the business
-// owner's own authenticated account can access their own listing's menu —
-// it's not available to third-party tools like this one for other
-// businesses), so this website-text approach is the most honest "auto"
-// option available without fabricating anything.
-export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]> {
+export async function autoExtractMenuFromWebsite(url: string, apiKey: string): Promise<{ menuText?: string; menuLink?: string }> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
@@ -85,31 +62,71 @@ export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]
       headers: { "User-Agent": "Mozilla/5.0 (compatible; LeadScoutBot/1.0)" },
     });
     clearTimeout(timeout);
-    if (!res.ok) return [];
+    
+    if (!res.ok) return {};
     const html = await res.text();
+    
+    const menuLinkMatch = html.match(/href=["']([^"']*(?:menu|carte|card)[^"']*)["']/i);
+    let finalLink = url;
+    if (menuLinkMatch && menuLinkMatch[1]) {
+      try {
+        finalLink = new URL(menuLinkMatch[1], res.url || url).toString();
+      } catch (_e: unknown) {
+        // ignore invalid URL
+      }
+    }
 
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<\/(p|div|li|tr|h[1-6]|br)>/gi, "\n")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&#39;|&rsquo;/g, "'")
-      .replace(/[ \t]+/g, " ")
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .join("\n");
+    const cleanHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+                          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+                          .replace(/<[^>]+>/g, " ")
+                          .replace(/\s+/g, " ")
+                          .slice(0, 15000);
 
-    const sections = parseMenuText(text);
-    // Guard against false positives (random prices on a non-menu page) —
-    // only return results if we found a reasonable number of plausible items.
-    const total = countMenuItems(sections);
-    if (total < 4) return [];
-    return sections;
-  } catch {
-    return [];
+    const promptText = `Extract all menu items and prices from this text (which is scraped from a restaurant website). Format it as plain text with one item per line like 'Name - $Price', and use '## Category' for section headers. If there is no clear menu data, return nothing.\n\n${cleanHtml}`;
+    let text = "";
+
+    if (apiKey.startsWith("xai-")) {
+      const grokRes = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "grok-2-latest",
+          messages: [{ role: "user", content: promptText }],
+        }),
+      });
+
+      if (grokRes.ok) {
+        const data = await grokRes.json();
+        text = data.choices?.[0]?.message?.content || "";
+      }
+    } else {
+      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+        }),
+      });
+
+      if (geminiRes.ok) {
+        const data = await geminiRes.json();
+        text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      }
+    }
+    
+    if (text.length < 20 || text.toLowerCase().includes("no menu items") || text.toLowerCase().includes("cannot extract")) {
+      text = "";
+    }
+    
+    return { 
+      menuText: text || undefined, 
+      menuLink: finalLink !== url ? finalLink : undefined 
+    };
+  } catch (e: unknown) {
+    console.error("Auto menu extraction failed", e);
+    return {};
   }
 }

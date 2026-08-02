@@ -1,9 +1,9 @@
 import { GeneratedContent, Lead } from "./types";
 import { detectTemplateType } from "./template-type";
 
-// Uses xAI's Grok API (OpenAI-compatible chat completions endpoint).
-// Get a key at console.x.ai. Env var name follows xAI's own convention.
-const MODEL = "grok-4.3";
+// Uses xAI's Grok API (OpenAI-compatible chat completions endpoint) or Google Gemini.
+const GROK_MODEL = "grok-3";
+const GEMINI_MODEL = "gemini-flash-latest";
 
 function showcaseInstructions(type: ReturnType<typeof detectTemplateType>) {
   switch (type) {
@@ -39,9 +39,9 @@ export async function generateContent(
   lead: Lead,
   revisionComment?: string
 ): Promise<GeneratedContent> {
-  const apiKey = process.env.XAI_API_KEY;
+  const apiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing XAI_API_KEY. Add it to your environment variables.");
+    throw new Error("Missing API Key. Add XAI_API_KEY, GROK_API_KEY, or GEMINI_API_KEY to your environment variables.");
   }
 
   const type = detectTemplateType(lead.category);
@@ -75,32 +75,62 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
 }
 "showcaseItems" must be a JSON array matching the field described above.`;
 
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    }),
-  });
+  if (apiKey.startsWith("xai-") || process.env.XAI_API_KEY || process.env.GROK_API_KEY) {
+    const res = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: GROK_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Grok API error (${res.status}): ${text}`);
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content;
+    if (!text) throw new Error("Grok returned an empty response.");
+
+    try {
+      return JSON.parse(text) as GeneratedContent;
+    } catch {
+      throw new Error("Grok returned content that wasn't valid JSON — try again.");
+    }
+  }
+
+  // Fallback to Gemini
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, responseMimeType: "application/json" },
+      }),
+    }
+  );
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Grok API error (${res.status}): ${text}`);
+    throw new Error(`Gemini API error (${res.status}): ${text}`);
   }
 
   const data = await res.json();
-  const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("Grok returned an empty response.");
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Gemini returned an empty response.");
 
   try {
     return JSON.parse(text) as GeneratedContent;
   } catch {
-    throw new Error("Grok returned content that wasn't valid JSON — try again.");
+    throw new Error("Gemini returned content that wasn't valid JSON — try again.");
   }
 }

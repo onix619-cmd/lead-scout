@@ -4,7 +4,7 @@ import { generateLandingPageHTML } from "@/lib/template";
 import { deployToVercel } from "@/lib/deploy";
 import { getSupabase } from "@/lib/supabase";
 import { fetchPlaceReviews } from "@/lib/reviews";
-import { parseMenuText, extractMenuFromWebsite } from "@/lib/menu";
+import { parseMenuText, autoExtractMenuFromWebsite } from "@/lib/menu";
 import { Lead } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -29,8 +29,12 @@ export async function POST(req: NextRequest) {
     let menuSections = finalMenuText ? parseMenuText(finalMenuText) : [];
     let autoExtracted = false;
     if (menuSections.length === 0 && lead.website) {
-      menuSections = await extractMenuFromWebsite(lead.website);
-      autoExtracted = menuSections.length > 0;
+      const apiKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY || process.env.GEMINI_API_KEY || "";
+      const result = await autoExtractMenuFromWebsite(lead.website, apiKey);
+      if (result.menuText) {
+        menuSections = parseMenuText(result.menuText);
+        autoExtracted = menuSections.length > 0;
+      }
     }
 
     const leadWithImages: Lead = {
