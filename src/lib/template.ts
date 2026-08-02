@@ -55,6 +55,21 @@ export function generateLandingPageHTML(
   const philosophyImage = galleryImages[1] ?? galleryImages[0] ?? null;
   const finalCtaImage = galleryImages[2] ?? galleryImages[0] ?? null;
 
+  const menuCarouselHtml = `
+    <div class="mt-10 relative max-w-2xl mx-auto">
+      <div class="overflow-hidden r-card">
+        <div id="menu-carousel-track" class="flex transition-transform duration-500" style="transform: translateX(0%);">
+          ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-80 object-cover" />`).join("")}
+        </div>
+      </div>
+      ${galleryImages.length > 1 ? `
+      <button type="button" onclick="menuCarouselMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">‹</button>
+      <button type="button" onclick="menuCarouselMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">›</button>
+      <div class="flex justify-center gap-1.5 mt-3">
+        ${galleryImages.map((_, i) => `<span class="menu-carousel-dot w-1.5 h-1.5 rounded-full" data-i="${i}" style="background:${i === 0 ? "var(--primary)" : "rgba(255,255,255,0.3)"};"></span>`).join("")}
+      </div>` : ""}
+    </div>`;
+
   const dining = lead.diningOptions ?? {};
   const diningBadges = [
     dining.dineIn ? "Dine-In" : null,
@@ -317,6 +332,8 @@ ${philosophyImage ? `
       </div>`).join("")}
     </div>
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu current as of your last update — prices and availability may change.</p>
+    ${lead.website ? `<div class="text-center mt-4"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
+    ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     ` : R ? `
     <div class="flex flex-wrap gap-2 justify-center mb-10">
       ${["Starters", "Mains", "Desserts"].map((tab, i) => `
@@ -334,6 +351,7 @@ ${philosophyImage ? `
     </div>`).join("")}
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu items, availability, and pricing vary — please ask our team for current details.</p>
     ${lead.website ? `<div class="text-center mt-4"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
+    ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     ` : `
     <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
       ${content.highlights.map((h, i) => `
@@ -345,6 +363,7 @@ ${philosophyImage ? `
     ${lead.website
       ? `<div class="text-center mt-6"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-lg font-medium text-white" style="background:var(--primary);">View Full Menu ↗</a></div>`
       : `<p class="text-xs text-slate-500 mt-6">Ask us about our full current menu in person or by phone.</p>`}
+    ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     `}
   </div>
 </section>
@@ -590,6 +609,18 @@ ${philosophyImage ? `
       ? `window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');`
       : `alert('Thanks ' + name + '! Please call us directly to confirm: ${escapeHtml(lead.phone ?? "see contact section")}');`}
   });
+
+  let menuCarouselIndex = 0;
+  function menuCarouselMove(dir) {
+    const track = document.getElementById('menu-carousel-track');
+    if (!track) return;
+    const slides = track.children.length;
+    menuCarouselIndex = (menuCarouselIndex + dir + slides) % slides;
+    track.style.transform = 'translateX(' + (-menuCarouselIndex * 100) + '%)';
+    document.querySelectorAll('.menu-carousel-dot').forEach((dot, i) => {
+      dot.style.background = i === menuCarouselIndex ? 'var(--primary)' : 'rgba(255,255,255,0.3)';
+    });
+  }
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('show'); });

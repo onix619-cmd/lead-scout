@@ -157,7 +157,7 @@ ${heroImage ? `<meta property="og:image" content="${heroImage}" />` : ""}
   <p class="text-xs uppercase tracking-widest font-semibold mb-2 text-center" style="color:#c9a24b;">Morning to Afternoon</p>
   <h2 class="text-3xl font-semibold mb-3 text-center">A glimpse of the <span class="accent-italic">menu</span></h2>
   <p class="text-center text-[#5a4c3c] max-w-xl mx-auto mb-12">${menuSections.length > 0 ? "Ask about seasonal specials not listed here." : "Ask our team about our full menu in person or by phone."}</p>
-  ${menuSections.length === 0 && lead.website ? `<div class="text-center -mt-8 mb-10"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-full font-medium" style="background:#c9a24b; color:#241c15;">View Full Menu ↗</a></div>` : ""}
+  ${lead.website ? `<div class="text-center -mt-8 mb-10"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-full font-medium" style="background:#c9a24b; color:#241c15;">View Full Menu ↗</a></div>` : ""}
   <div class="grid sm:grid-cols-2 gap-x-12 gap-y-10">
     ${numberedCategories.slice(0, 4).map((section, i) => `
     <div>
@@ -172,6 +172,20 @@ ${heroImage ? `<meta property="og:image" content="${heroImage}" />` : ""}
       </ul>
     </div>`).join("")}
   </div>
+  ${galleryImages.length > 0 ? `
+  <div class="mt-14 relative max-w-2xl mx-auto">
+    <div class="overflow-hidden rounded-2xl">
+      <div id="menu-carousel-track" class="flex transition-transform duration-500" style="transform: translateX(0%);">
+        ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-80 object-cover" />`).join("")}
+      </div>
+    </div>
+    ${galleryImages.length > 1 ? `
+    <button type="button" onclick="menuCarouselMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(36,28,21,0.6);">‹</button>
+    <button type="button" onclick="menuCarouselMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(36,28,21,0.6);">›</button>
+    <div class="flex justify-center gap-1.5 mt-3">
+      ${galleryImages.map((_, i) => `<span class="menu-carousel-dot w-1.5 h-1.5 rounded-full" data-i="${i}" style="background:${i === 0 ? "#c9a24b" : "rgba(36,28,21,0.2)"};"></span>`).join("")}
+    </div>` : ""}
+  </div>` : ""}
 </section>
 
 <!-- Gallery -->
@@ -248,6 +262,18 @@ ${galleryImages.length > 1 ? `
 </footer>
 
 <script>
+  let menuCarouselIndex = 0;
+  function menuCarouselMove(dir) {
+    const track = document.getElementById('menu-carousel-track');
+    if (!track) return;
+    const slides = track.children.length;
+    menuCarouselIndex = (menuCarouselIndex + dir + slides) % slides;
+    track.style.transform = 'translateX(' + (-menuCarouselIndex * 100) + '%)';
+    document.querySelectorAll('.menu-carousel-dot').forEach((dot, i) => {
+      dot.style.background = i === menuCarouselIndex ? '#c9a24b' : 'rgba(36,28,21,0.2)';
+    });
+  }
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('show'); });
   }, { threshold: 0.15 });
