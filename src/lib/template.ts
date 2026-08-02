@@ -30,12 +30,13 @@ export function generateLandingPageHTML(
   lead: Lead,
   content: GeneratedContent,
   menuSections: MenuSection[] = [],
-  variant: "A" | "B" = Math.random() < 0.5 ? "A" : "B"
+  variant: "A" | "B" = Math.random() < 0.5 ? "A" : "B",
+  originalMenuPhotoUrl?: string
 ): string {
   const themeKey = detectThemeKey(lead.category, lead.name);
 
   if (themeKey === "coffee") {
-    return generateCoffeeLandingPageHTML(lead, content, menuSections);
+    return generateCoffeeLandingPageHTML(lead, content, menuSections, originalMenuPhotoUrl);
   }
 
   const theme = getTheme(themeKey, lead.name);
@@ -332,7 +333,7 @@ ${philosophyImage ? `
       </div>`).join("")}
     </div>
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu current as of your last update — prices and availability may change.</p>
-    ${lead.website ? `<div class="text-center mt-4"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
+    ${originalMenuPhotoUrl || lead.website ? `<div class="text-center mt-4"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">${originalMenuPhotoUrl ? "View Original Menu ↗" : "View Full Menu ↗"}</a></div>` : ""}
     ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     ` : R ? `
     <div class="flex flex-wrap gap-2 justify-center mb-10">
@@ -350,7 +351,7 @@ ${philosophyImage ? `
       </div>` : "")).join("") || `<p class="text-sm sm:col-span-2 text-center" style="${mutedStyle}">Ask us about our ${tab.toLowerCase()} selection.</p>`}
     </div>`).join("")}
     <p class="text-xs text-center mt-8" style="${mutedStyle}">Menu items, availability, and pricing vary — please ask our team for current details.</p>
-    ${lead.website ? `<div class="text-center mt-4"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
+    ${originalMenuPhotoUrl || lead.website ? `<div class="text-center mt-4"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">${originalMenuPhotoUrl ? "View Original Menu ↗" : "View Full Menu ↗"}</a></div>` : ""}
     ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     ` : `
     <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
@@ -360,8 +361,8 @@ ${philosophyImage ? `
         <p class="font-medium">${escapeHtml(h)}</p>
       </div>`).join("")}
     </div>
-    ${lead.website
-      ? `<div class="text-center mt-6"><a href="${lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-lg font-medium text-white" style="background:var(--primary);">View Full Menu ↗</a></div>`
+    ${originalMenuPhotoUrl || lead.website
+      ? `<div class="text-center mt-6"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-lg font-medium text-white" style="background:var(--primary);">${originalMenuPhotoUrl ? "View Original Menu ↗" : "View Full Menu ↗"}</a></div>`
       : `<p class="text-xs text-slate-500 mt-6">Ask us about our full current menu in person or by phone.</p>`}
     ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     `}

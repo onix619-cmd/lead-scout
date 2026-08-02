@@ -5,7 +5,7 @@ import { deployToVercel } from "@/lib/deploy";
 import { getSupabase } from "@/lib/supabase";
 import { fetchPlaceReviews } from "@/lib/reviews";
 import { parseMenuText, extractMenuFromWebsite } from "@/lib/menu";
-import { extractMenuFromImages } from "@/lib/menu-vision";
+import { extractMenuFromImages, detectMenuFromGooglePhotos } from "@/lib/menu-vision";
 import { Lead } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -30,11 +30,42 @@ export async function POST(req: NextRequest) {
     const finalMenuText = menuText ?? lead.menuText;
     const uploadedImages = images && images.length > 0 ? images : lead.uploadedImages;
 
-    // Priority: manually pasted menu > auto-read from uploaded photos >
-    // scraped from the business's own website text > nothing (falls back
-    // to a "View Full Menu" link to their real site, if they have one).
+    // Pipeline order:
+    // 1. Manually pasted menu text (fastest, most reliable when available)
+    // 2. Check Supabase for a previously-extracted menu for this business
+    // 3. Auto-detect from the business's real Google Maps photos via Claude
+    //    Vision — no upload needed, this is the main automatic path
+    // 4. Auto-read from photos you manually uploaded, via selected provider
+    // 5. Scraped from the business's own website text
+    // 6. Nothing found — falls back to a "View Full Menu" link/placeholder
     let menuSections = finalMenuText ? parseMenuText(finalMenuText) : [];
-    let menuSource: "manual" | "photos" | "website" | "none" = menuSections.length > 0 ? "manual" : "none";
+    let menuSource: "manual" | "cached" | "google-photos" | "photos" | "website" | "none" =
+      menuSections.length > 0 ? "manual" : "none";
+    let originalMenuPhotoUrl: string | undefined;
+
+    const supabase = getSupabase();
+
+    if (menuSections.length === 0 && supabase) {
+      const { data: cached } = await supabase
+        .from("leads")
+        .select("menu_json, menu_source_photo_url")
+        .eq("place_id", lead.placeId)
+        .maybeSingle();
+      if (cached?.menu_json?.length) {
+        menuSections = cached.menu_json;
+        originalMenuPhotoUrl = cached.menu_source_photo_url ?? undefined;
+        menuSource = "cached";
+      }
+    }
+
+    if (menuSections.length === 0 && lead.photoUrls && lead.photoUrls.length > 0) {
+      const result = await detectMenuFromGooglePhotos(lead.photoUrls);
+      if (result.sections.length > 0) {
+        menuSections = result.sections;
+        originalMenuPhotoUrl = result.sourcePhotoUrl;
+        menuSource = "google-photos";
+      }
+    }
 
     if (menuSections.length === 0 && uploadedImages && uploadedImages.length > 0) {
       menuSections = await extractMenuFromImages(uploadedImages, aiProvider);
@@ -53,15 +84,16 @@ export async function POST(req: NextRequest) {
     };
 
     const content = await generateContent(leadWithImages, comment, aiProvider);
-    const html = generateLandingPageHTML(leadWithImages, content, menuSections);
+    const html = generateLandingPageHTML(leadWithImages, content, menuSections, undefined, originalMenuPhotoUrl);
     const url = await deployToVercel(leadWithImages.name, leadWithImages.placeId, html);
 
-    const supabase = getSupabase();
     if (supabase) {
-      await supabase
-        .from("leads")
-        .update({ generated_url: url })
-        .eq("place_id", leadWithImages.placeId);
+      const update: Record<string, any> = { generated_url: url };
+      if (menuSource === "google-photos" || menuSource === "photos") {
+        update.menu_json = menuSections;
+        update.menu_source_photo_url = originalMenuPhotoUrl ?? null;
+      }
+      await supabase.from("leads").update(update).eq("place_id", leadWithImages.placeId);
     }
 
     return NextResponse.json({

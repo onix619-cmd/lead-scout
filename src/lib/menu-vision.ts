@@ -6,6 +6,7 @@ import { AiProvider } from "./content-writer";
 const GROQ_VISION_MODEL = "qwen/qwen3.6-27b";
 const GEMINI_MODEL = "gemini-flash-latest";
 const XAI_MODEL = "grok-4.3";
+const CLAUDE_MODEL = "claude-sonnet-5";
 
 const VISION_PROMPT = `This image shows a menu (or a photo containing menu
 text) from a real business. Read ONLY the text that is actually visible in
@@ -22,10 +23,54 @@ Respond with ONLY valid JSON, no markdown fences, in this shape:
   ]
 }`;
 
+const CLASSIFY_PROMPT = `Look at this photo from a business's Google Maps
+listing. Answer only: is this image a photo of a menu (a printed/digital
+menu board, menu page, or price list)? Respond with ONLY valid JSON, no
+markdown fences: {"isMenu": true or false}`;
+
 function dataUrlParts(dataUrl: string): { mime: string; base64: string } | null {
   const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
   if (!m) return null;
   return { mime: m[1], base64: m[2] };
+}
+
+function imageBlock(img: string) {
+  if (img.startsWith("data:")) {
+    const p = dataUrlParts(img);
+    if (!p) return null;
+    return { type: "image", source: { type: "base64", media_type: p.mime, data: p.base64 } };
+  }
+  return { type: "image", source: { type: "url", url: img } };
+}
+
+async function callClaude(prompt: string, images: string[], maxTokens = 1500): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY.");
+  const content: any[] = images.map(imageBlock).filter(Boolean);
+  content.push({ type: "text", text: prompt });
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: maxTokens,
+      messages: [{ role: "user", content }],
+    }),
+  });
+  if (!res.ok) throw new Error(`Claude vision error (${res.status}): ${await res.text()}`);
+  const data = await res.json();
+  const text = data.content?.find((b: any) => b.type === "text")?.text;
+  return text ?? "";
+}
+
+function parseJsonLoose(text: string): any {
+  const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+  return JSON.parse(cleaned);
 }
 
 async function visionGroq(images: string[]): Promise<string> {
@@ -96,6 +141,21 @@ async function visionXai(images: string[]): Promise<string> {
   return data.choices?.[0]?.message?.content ?? "";
 }
 
+async function visionClaude(images: string[]): Promise<string> {
+  return callClaude(VISION_PROMPT, images.slice(0, 3));
+}
+
+function toMenuSections(parsed: any): MenuSection[] {
+  return (parsed.sections ?? [])
+    .map((s: any) => ({
+      category: s.category || undefined,
+      items: (s.items ?? [])
+        .filter((it: any) => it.name)
+        .map((it: any) => ({ name: String(it.name), price: it.price ? String(it.price) : undefined })),
+    }))
+    .filter((s: MenuSection) => s.items.length > 0);
+}
+
 // Extracts real menu items/prices visible in user-supplied photos, via
 // whichever AI provider is selected. Best-effort — returns an empty array
 // on any failure or when nothing legible is found, so the caller can fall
@@ -107,20 +167,53 @@ export async function extractMenuFromImages(
   if (!images || images.length === 0) return [];
   try {
     const text =
-      provider === "groq" ? await visionGroq(images) : provider === "gemini" ? await visionGemini(images) : await visionXai(images);
+      provider === "groq"
+        ? await visionGroq(images)
+        : provider === "gemini"
+        ? await visionGemini(images)
+        : provider === "claude"
+        ? await visionClaude(images)
+        : await visionXai(images);
 
-    const parsed = JSON.parse(text);
-    const sections: MenuSection[] = (parsed.sections ?? [])
-      .map((s: any) => ({
-        category: s.category || undefined,
-        items: (s.items ?? [])
-          .filter((it: any) => it.name)
-          .map((it: any) => ({ name: String(it.name), price: it.price ? String(it.price) : undefined })),
-      }))
-      .filter((s: MenuSection) => s.items.length > 0);
-
-    return sections;
+    return toMenuSections(parseJsonLoose(text));
   } catch {
     return [];
   }
+}
+
+// The full "Detect Menu Photos" pipeline: scans a business's real Google
+// Maps photos (no manual upload needed), asks Claude to classify each as
+// menu/not-menu, then extracts structured items from whichever ones are
+// menus. Capped at a handful of photos to keep cost/latency reasonable —
+// checking every photo on a large listing isn't worth it. Returns the
+// merged menu plus the URL of the first photo identified as the menu, for
+// the "View Original Menu" button.
+export async function detectMenuFromGooglePhotos(
+  photoUrls: string[]
+): Promise<{ sections: MenuSection[]; sourcePhotoUrl?: string }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey || !photoUrls || photoUrls.length === 0) {
+    return { sections: [] };
+  }
+
+  const candidates = photoUrls.slice(0, 6);
+  let sourcePhotoUrl: string | undefined;
+  const allSections: MenuSection[] = [];
+
+  for (const url of candidates) {
+    try {
+      const classifyText = await callClaude(CLASSIFY_PROMPT, [url], 100);
+      const { isMenu } = parseJsonLoose(classifyText);
+      if (!isMenu) continue;
+
+      if (!sourcePhotoUrl) sourcePhotoUrl = url;
+      const extractText = await callClaude(VISION_PROMPT, [url]);
+      const sections = toMenuSections(parseJsonLoose(extractText));
+      allSections.push(...sections);
+    } catch {
+      // skip this photo, keep checking the rest
+    }
+  }
+
+  return { sections: allSections, sourcePhotoUrl };
 }

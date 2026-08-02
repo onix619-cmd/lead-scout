@@ -41,6 +41,10 @@ function mapPlace(p: any, apiKey: string): Business {
       p.photos && p.photos.length > 0
         ? `${PLACES_BASE}/${p.photos[0].name}/media?maxWidthPx=800&key=${apiKey}`
         : null,
+    photoUrls:
+      p.photos && p.photos.length > 0
+        ? p.photos.slice(0, 10).map((ph: any) => `${PLACES_BASE}/${ph.name}/media?maxWidthPx=1000&key=${apiKey}`)
+        : [],
     diningOptions: {
       takeout: p.takeout,
       delivery: p.delivery,

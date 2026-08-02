@@ -1,7 +1,7 @@
 import { GeneratedContent, Lead } from "./types";
 import { detectTemplateType } from "./template-type";
 
-export type AiProvider = "groq" | "gemini" | "xai";
+export type AiProvider = "groq" | "gemini" | "xai" | "claude";
 
 // Text models per provider. Groq deprecated llama-3.3-70b-versatile in
 // mid-2026 — migrated to their recommended replacement.
@@ -9,6 +9,7 @@ const MODELS: Record<AiProvider, string> = {
   groq: "openai/gpt-oss-120b",
   gemini: "gemini-flash-latest",
   xai: "grok-4.3",
+  claude: "claude-sonnet-5",
 };
 
 function showcaseInstructions(type: ReturnType<typeof detectTemplateType>) {
@@ -134,6 +135,34 @@ async function callXai(prompt: string): Promise<string> {
   return text;
 }
 
+async function callClaude(prompt: string): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY. Add it to your environment variables.");
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: MODELS.claude,
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!res.ok) throw new Error(`Claude API error (${res.status}): ${await res.text()}`);
+  const data = await res.json();
+  const text = data.content?.find((b: any) => b.type === "text")?.text;
+  if (!text) throw new Error("Claude returned an empty response.");
+  return text;
+}
+
+function parseJsonLoose(text: string): any {
+  const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+  return JSON.parse(cleaned);
+}
+
 export async function generateContent(
   lead: Lead,
   revisionComment?: string,
@@ -142,10 +171,16 @@ export async function generateContent(
   const prompt = buildPrompt(lead, revisionComment);
 
   const text =
-    provider === "groq" ? await callGroq(prompt) : provider === "gemini" ? await callGemini(prompt) : await callXai(prompt);
+    provider === "groq"
+      ? await callGroq(prompt)
+      : provider === "gemini"
+      ? await callGemini(prompt)
+      : provider === "claude"
+      ? await callClaude(prompt)
+      : await callXai(prompt);
 
   try {
-    return JSON.parse(text) as GeneratedContent;
+    return parseJsonLoose(text) as GeneratedContent;
   } catch {
     throw new Error(`${provider} returned content that wasn't valid JSON — try again.`);
   }

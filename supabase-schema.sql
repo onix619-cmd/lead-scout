@@ -25,3 +25,9 @@ create policy "Allow all for now" on leads for all using (true) with check (true
 
 -- Run this if you already created the leads table before Phase 2:
 alter table leads add column if not exists generated_url text;
+
+-- Run this to enable caching of an auto-detected menu (from Google Photos
+-- via Claude Vision), so regenerating a site doesn't re-run vision calls
+-- unnecessarily:
+alter table leads add column if not exists menu_json jsonb;
+alter table leads add column if not exists menu_source_photo_url text;

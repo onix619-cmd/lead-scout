@@ -126,6 +126,36 @@ visit/footer section. Restaurants, pizza places, bakeries, bars, and fast
 food still share the dark elegant template from before; ice cream keeps its
 playful theme; everything else keeps the general template.
 
+## Automatic menu detection pipeline (new)
+
+Added a proper automatic pipeline matching this flow: Google Maps photos →
+detect which ones are a menu → download → Claude Vision reads them →
+structured JSON → cached in Supabase → shown as an interactive menu on the
+generated site → "View Original Menu" button linking to the actual source
+photo.
+
+**How it works:** every business already has its real Google Photos
+available. When you click Generate, before falling back to anything
+manual, the app now automatically checks up to 6 of the business's real
+Google photos, asks Claude to classify each as "is this a menu?", and for
+any that are, extracts the real items and prices visible in it — all with
+no upload needed from you. If Supabase is connected, a business's
+extracted menu is cached (`menu_json` column) so regenerating later reuses
+it instead of re-running vision calls.
+
+Full priority order now: pasted menu text → cached menu from a previous
+generation → auto-detected from the business's Google photos (Claude
+Vision) → photos you manually uploaded (via whichever provider you picked)
+→ scraped from their website text → a "View Original/Full Menu ↗" link
+→ generic placeholder as the last resort. When a menu came from a
+Google photo or your upload, the "View Menu" button links straight to that
+source photo instead of their general website.
+
+This requires `ANTHROPIC_API_KEY` (get one at console.anthropic.com) even
+if you don't pick Claude as your main text-writing provider — it's what
+powers this specific detection step regardless of which provider you have
+selected in the dropdown.
+
 ## Choosing your AI provider
 
 Every "Generate" button now has an **AI provider** dropdown right above it —

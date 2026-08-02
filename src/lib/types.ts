@@ -10,6 +10,7 @@ export type Business = {
   openingHours: string[];
   mapsUrl: string;
   photoUrl: string | null;
+  photoUrls?: string[];
   diningOptions?: {
     takeout?: boolean;
     delivery?: boolean;
