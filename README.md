@@ -30,11 +30,24 @@ phase.
   `GOOGLE_PLACES_API_KEY` works for it too, nothing new to copy.
 - Address autocomplete (suggestions as you type) uses the same Places API
   (New) you already enabled — no extra setup needed.
-- An xAI Grok API key (no Google billing link needed — separate provider
-  from the free-tier hassle Gemini had):
-  1. Go to **console.x.ai** and sign in / sign up.
-  2. Go to **API Keys** → **Create API Key**.
-  3. Copy the key immediately.
+- A Gemini API key, **plus a one-time billing link** (see below — this is
+  now required by Google even to use the free-tier limits; usage within
+  those limits still costs $0):
+  1. Go to **aistudio.google.com/apikey**, sign in with the same Google
+     account as your Cloud project, click **Create API key**, choose the
+     same project you used for Places API, copy the key.
+  2. Go to **console.cloud.google.com/billing**, click **Link a billing
+     account** for that project. If you don't have one yet, add a payment
+     method — you will not be charged as long as you stay under Gemini's
+     free-tier limits (currently generous for this app's usage).
+  3. **Set a spend cap as a safety net:** in the same Billing section, go to
+     **Budgets & alerts → Create budget**, set it against this project, and
+     set the amount to something small like $5–10. This doesn't hard-block
+     spending by default, but Google will alert you by email if you're ever
+     about to exceed it — go to the budget's **Actions** settings to also
+     cap spend automatically if you want a hard stop.
+  4. It can take a few minutes for the new billing link to propagate before
+     the quota unlocks.
 - A **free** Vercel API token so the app can deploy generated sites for you:
   1. Go to **vercel.com/account/tokens**.
   2. Click **Create Token**, give it any name, no expiration (or pick one),
@@ -60,7 +73,7 @@ phase.
 2. Import the `lead-scout` GitHub repo you just created.
 3. Before clicking Deploy, open **Environment Variables** and add all of:
    - `GOOGLE_PLACES_API_KEY` = your Google Places API key
-   - `XAI_API_KEY` = your xAI Grok API key
+   - `GEMINI_API_KEY` = your Gemini API key
    - `VERCEL_API_TOKEN` = your Vercel token
 4. Click **Deploy**. In ~1 minute you'll get a URL like
    `https://lead-scout-yourname.vercel.app` — that's your dashboard.
@@ -114,34 +127,6 @@ storing large volumes of leads or building outreach at scale, it's worth
 reading Google's Places API Policies page and adjusting storage (the
 `leads` table above only stores what you need for CRM tracking, not full
 Places data, but double check as this grows).
-
-## Coffee shops now get their own distinct template
-
-Coffee shops are no longer folded into the dark restaurant template — they
-get a separate light, airy design (cream background, coffee-brown accents,
-Fraunces + Poppins typography) with its own section flow: hero, story +
-amenity chips (real dine-in/takeout/delivery/outdoor-seating data), a
-specialties grid, a numbered menu preview, gallery, real reviews, and a
-visit/footer section. Restaurants, pizza places, bakeries, bars, and fast
-food still share the dark elegant template from before; ice cream keeps its
-playful theme; everything else keeps the general template.
-
-## Auto menu extraction (best-effort)
-
-When you click Generate and haven't pasted a menu, the app now tries to
-auto-detect one from the business's own real website (if they have one) by
-scanning its visible text for "item ... $price" patterns. This only works
-when a site's menu is actual readable text — most restaurant sites show
-their menu as an image or PDF, which this can't read, so it'll often come
-up empty and fall back to the general highlight cards, same as before.
-
-Worth knowing: there's no official Google API that hands over structured
-menu + pricing data for arbitrary businesses. Google's Business Profile
-"Food Menus" API does support real structured menus, but only the
-business's own authenticated owner account can access it for their own
-listing — not a third-party tool like this one looking up other
-businesses. So pasting the real menu yourself remains the most reliable way
-to get accurate prices on the generated site.
 
 ## A note on the generated landing pages
 
