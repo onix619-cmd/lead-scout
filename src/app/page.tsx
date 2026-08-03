@@ -41,7 +41,7 @@ const CATEGORIES = [
   "Bookstores",
 ];
 
-const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
+const RADIUS_OPTIONS = [5, 10, 20,40];
 
 const PROVINCES = [
   "Alberta",
@@ -66,7 +66,7 @@ const priorityStyle: Record<Lead["priority"], string> = {
 };
 
 export default function Dashboard() {
-  const [category, setCategory] = useState("Restaurants");
+  const [category, setCategory] = useState("Choose");
   const [showCategoryList, setShowCategoryList] = useState(false);
   const [address, setAddress] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
