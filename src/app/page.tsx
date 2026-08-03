@@ -519,22 +519,19 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 shrink-0 w-52">
-                      {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
-                        .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
-                        .slice(0, 2).length > 0 && (
-                        <div className="flex gap-1.5 w-full">
-                          {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
-                            .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
-                            .slice(0, 2)
-                            .map((src, i) => (
-                              <img
-                                key={i}
-                                src={src}
-                                alt={lead.name}
-                                className="w-1/2 h-28 object-cover rounded-lg border border-slate-200"
-                              />
-                            ))}
+                    <div className="flex flex-col items-end gap-3 shrink-0 w-64">
+                      {/* Bigger preview square image next to generation / buttons */}
+                      {(images[lead.placeId]?.[0] || lead.photoUrl) && (
+                        <div className="w-full flex items-center gap-2">
+                          <img
+                            src={images[lead.placeId]?.[0] || lead.photoUrl || undefined}
+                            alt={lead.name}
+                            className="w-24 h-24 object-cover rounded-xl border border-slate-300 shadow-sm"
+                          />
+                          <div className="flex-1 text-xs text-slate-500">
+                            <span className="font-semibold text-slate-700 block">Preview</span>
+                            {lead.address}
+                          </div>
                         </div>
                       )}
                       <label className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 w-full text-center cursor-pointer hover:bg-slate-50">
@@ -559,7 +556,7 @@ export default function Dashboard() {
                             setMenuTexts((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
                           }
                           placeholder={"## Starters\nCaesar Salad - $12\nSoup of the Day - $8\n\n## Mains\nGrilled Salmon - $24"}
-                          rows={5}
+                          rows={10}
                           className="w-full mt-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 placeholder-slate-400 focus:outline-none focus:border-sky-400"
                         />
                         <p className="text-[10px] text-slate-400 mt-1">
