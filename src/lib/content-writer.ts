@@ -3,10 +3,8 @@ import { detectTemplateType } from "./template-type";
 
 export type AiProvider = "groq" | "gemini" | "claude";
 
-// Text models per provider. Groq deprecated llama-3.3-70b-versatile in
-// mid-2026 — migrated to their recommended replacement.
 const MODELS: Record<AiProvider, string> = {
-  groq: "openai/gpt-oss-120b",
+  groq: "llama-3.3-70b-versatile",
   gemini: "gemini-flash-latest",
   claude: "claude-sonnet-5",
 };
@@ -74,22 +72,25 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
 }
 
 async function callGroq(prompt: string): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY. Add it to your environment variables.");
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const apiKey = process.env.GROQ_API_KEY || process.env.XAI_API_KEY;
+  if (!apiKey) throw new Error("Missing GROQ_API_KEY or XAI_API_KEY. Add it to your environment variables.");
+  const endpoint = process.env.XAI_API_KEY ? "https://api.x.ai/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
+  const model = process.env.XAI_API_KEY ? "grok-3" : MODELS.groq;
+
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: MODELS.groq,
+      model,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       response_format: { type: "json_object" },
     }),
   });
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
+  if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
   const data = await res.json();
   const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("Groq returned an empty response.");
+  if (!text) throw new Error("API returned an empty response.");
   return text;
 }
 
@@ -145,16 +146,30 @@ function parseJsonLoose(text: string): any {
 export async function generateContent(
   lead: Lead,
   revisionComment?: string,
-  provider: AiProvider = "claude"
+  provider: AiProvider = "groq"
 ): Promise<GeneratedContent> {
-  const prompt = buildPrompt(lead, revisionComment);
-
-  const text =
-    provider === "groq" ? await callGroq(prompt) : provider === "gemini" ? await callGemini(prompt) : await callClaude(prompt);
-
-  try {
-    return parseJsonLoose(text) as GeneratedContent;
-  } catch {
-    throw new Error(`${provider} returned content that wasn't valid JSON — try again.`);
+  let activeProvider = provider;
+  if (activeProvider === "claude" && !process.env.ANTHROPIC_API_KEY) {
+    if (process.env.GROQ_API_KEY || process.env.XAI_API_KEY) activeProvider = "groq";
+    else if (process.env.GEMINI_API_KEY) activeProvider = "gemini";
   }
+  if (activeProvider === "groq" && !(process.env.GROQ_API_KEY || process.env.XAI_API_KEY)) {
+    if (process.env.GEMINI_API_KEY) activeProvider = "gemini";
+    else if (process.env.ANTHROPIC_API_KEY) activeProvider = "claude";
+  }
+  if (activeProvider === "gemini" && !process.env.GEMINI_API_KEY) {
+    if (process.env.GROQ_API_KEY || process.env.XAI_API_KEY) activeProvider = "groq";
+    else if (process.env.ANTHROPIC_API_KEY) activeProvider = "claude";
+  }
+
+  const prompt = buildPrompt(lead, revisionComment);
+  let text = "";
+  if (activeProvider === "groq") {
+    text = await callGroq(prompt);
+  } else if (activeProvider === "gemini") {
+    text = await callGemini(prompt);
+  } else {
+    text = await callClaude(prompt);
+  }
+  return parseJsonLoose(text);
 }
