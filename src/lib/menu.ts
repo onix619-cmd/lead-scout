@@ -1,14 +1,5 @@
 import { MenuItem, MenuSection } from "./types";
 
-// Parses plain-text menu the business owner/user pastes in directly.
-// Supported format (flexible, line by line):
-//   ## Starters          <- optional category header (## prefix)
-//   Caesar Salad - $12
-//   Soup of the Day $8.50
-//   Garlic Bread — 6      (em-dash or plain number also work)
-// Anything that doesn't look like "name ... price" is kept as a
-// description-only line under the previous item, or skipped if it's the
-// first line in a section.
 export function parseMenuText(raw: string): MenuSection[] {
   if (!raw || !raw.trim()) return [];
 
@@ -33,7 +24,6 @@ export function parseMenuText(raw: string): MenuSection[] {
 
     const match = line.match(priceRe);
     if (match) {
-      // Strip trailing price and any separator (-, —, :, $) before it.
       const namePart = line
         .slice(0, match.index)
         .replace(/[-–—:\$\€\£]\s*$/, "")
@@ -46,7 +36,6 @@ export function parseMenuText(raw: string): MenuSection[] {
       }
     }
 
-    // No price on this line — treat as a description continuing the last item.
     if (lastItem && !lastItem.description) {
       lastItem.description = line;
     } else if (line.length > 0) {
@@ -63,18 +52,56 @@ export function countMenuItems(sections: MenuSection[]): number {
   return sections.reduce((sum, s) => sum + s.items.length, 0);
 }
 
-// Best-effort auto-extraction: fetches the business's own real website and
-// looks for plain-text "item ... $price" patterns, reusing the same parser
-// as the manual-paste flow. This only works when a site's menu is real
-// visible text (not an image or PDF, which is common) — when it can't find
-// enough matches, it returns an empty result and the manual-paste option
-// remains the reliable fallback. There is no official Google API that
-// returns structured menu+price data for arbitrary businesses (the
-// Google Business Profile "Food Menus" API exists, but only the business
-// owner's own authenticated account can access their own listing's menu —
-// it's not available to third-party tools like this one for other
-// businesses), so this website-text approach is the most honest "auto"
-// option available without fabricating anything.
+export async function autoExtractMenuFromImages(photoUrls: string[], apiKey: string): Promise<string> {
+  if (!apiKey || !photoUrls || photoUrls.length === 0) return "";
+
+  for (const url of photoUrls.slice(0, 3)) {
+    try {
+      let base64Data = "";
+      if (url.startsWith("data:")) {
+        base64Data = url.split(",")[1];
+      } else {
+        const r = await fetch(url);
+        const buf = await r.arrayBuffer();
+        base64Data = Buffer.from(buf).toString("base64");
+      }
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "You are an expert menu OCR parser. Examine this image. If this image is a menu, extract all menu categories, dish names, prices, and descriptions cleanly. Ignore decorative background graphics, logos, and phone numbers. Format the output strictly as:\n## Category Name\nDish Name - $Price\nOptional short description\n\nIf this image is NOT a menu, return nothing."
+                },
+                {
+                  inline_data: {
+                    mime_type: "image/jpeg",
+                    data: base64Data
+                  }
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim().length > 10) {
+          return text;
+        }
+      }
+    } catch {
+      // continue to next photo
+    }
+  }
+  return "";
+}
+
 export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]> {
   try {
     const controller = new AbortController();
@@ -104,8 +131,6 @@ export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]
       .join("\n");
 
     const sections = parseMenuText(text);
-    // Guard against false positives (random prices on a non-menu page) —
-    // only return results if we found a reasonable number of plausible items.
     const total = countMenuItems(sections);
     if (total < 4) return [];
     return sections;
