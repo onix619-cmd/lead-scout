@@ -72,31 +72,29 @@ Respond with ONLY valid JSON, no markdown fences, matching exactly this shape:
 }
 
 async function callGroq(prompt: string): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY || process.env.XAI_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY or XAI_API_KEY. Add it to your environment variables.");
-  const endpoint = process.env.XAI_API_KEY ? "https://api.x.ai/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
-  const model = process.env.XAI_API_KEY ? "grok-3" : MODELS.groq;
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("Missing GROQ_API_KEY. Add it to your environment variables on Vercel.");
 
-  const res = await fetch(endpoint, {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model,
+      model: MODELS.groq,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       response_format: { type: "json_object" },
     }),
   });
-  if (!res.ok) throw new Error(`API error (${res.status}): ${await res.text()}`);
+  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
   const data = await res.json();
   const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("API returned an empty response.");
+  if (!text) throw new Error("Groq returned an empty response.");
   return text;
 }
 
 async function callGemini(prompt: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Missing GEMINI_API_KEY. Add it to your environment variables.");
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY. Add it to your environment variables on Vercel.");
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODELS.gemini}:generateContent?key=${apiKey}`,
     {
@@ -149,16 +147,12 @@ export async function generateContent(
   provider: AiProvider = "groq"
 ): Promise<GeneratedContent> {
   let activeProvider = provider;
-  if (activeProvider === "claude" && !process.env.ANTHROPIC_API_KEY) {
-    if (process.env.GROQ_API_KEY || process.env.XAI_API_KEY) activeProvider = "groq";
-    else if (process.env.GEMINI_API_KEY) activeProvider = "gemini";
-  }
-  if (activeProvider === "groq" && !(process.env.GROQ_API_KEY || process.env.XAI_API_KEY)) {
+  if (activeProvider === "groq" && !process.env.GROQ_API_KEY) {
     if (process.env.GEMINI_API_KEY) activeProvider = "gemini";
     else if (process.env.ANTHROPIC_API_KEY) activeProvider = "claude";
   }
   if (activeProvider === "gemini" && !process.env.GEMINI_API_KEY) {
-    if (process.env.GROQ_API_KEY || process.env.XAI_API_KEY) activeProvider = "groq";
+    if (process.env.GROQ_API_KEY) activeProvider = "groq";
     else if (process.env.ANTHROPIC_API_KEY) activeProvider = "claude";
   }
 
