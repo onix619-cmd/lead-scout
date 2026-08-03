@@ -86,7 +86,7 @@ export default function Dashboard() {
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<Record<string, string[]>>({});
   const [menuTexts, setMenuTexts] = useState<Record<string, string>>({});
-  const [providers, setProviders] = useState<Record<string, "groq" | "gemini" | "xai" | "claude">>({});
+  const [providers, setProviders] = useState<Record<string, "groq" | "gemini" | "claude">>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -173,7 +173,7 @@ export default function Dashboard() {
           images: images[lead.placeId],
           menuText: menuTexts[lead.placeId],
           comment: withComment ? comments[lead.placeId] : undefined,
-          provider: providers[lead.placeId] ?? "xai",
+          provider: providers[lead.placeId] ?? "claude",
         }),
       });
       const data = await res.json();
@@ -563,16 +563,15 @@ export default function Dashboard() {
                       <div className="w-full">
                         <label className="text-[10px] text-neutral-500 block mb-1">AI provider</label>
                         <select
-                          value={providers[lead.placeId] ?? "xai"}
+                          value={providers[lead.placeId] ?? "claude"}
                           onChange={(e) =>
-                            setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" | "xai" | "claude" }))
+                            setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" | "claude" }))
                           }
                           className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
                         >
                           <option value="groq">Groq</option>
                           <option value="gemini">Gemini</option>
                           <option value="claude">Claude (menu photo detection)</option>
-                          <option value="xai">xAI (Grok)</option>
                         </select>
                       </div>
                       {generatedUrls[lead.placeId] ? (

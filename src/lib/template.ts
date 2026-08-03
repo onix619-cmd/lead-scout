@@ -2,6 +2,7 @@ import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
+import { generateQuickServiceLandingPageHTML } from "./template-quickservice";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -37,6 +38,9 @@ export function generateLandingPageHTML(
 
   if (themeKey === "coffee") {
     return generateCoffeeLandingPageHTML(lead, content, menuSections, originalMenuPhotoUrl);
+  }
+  if (themeKey === "quickservice") {
+    return generateQuickServiceLandingPageHTML(lead, content, menuSections, originalMenuPhotoUrl);
   }
 
   const theme = getTheme(themeKey, lead.name);

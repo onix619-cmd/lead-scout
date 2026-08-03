@@ -30,10 +30,11 @@ phase.
   `GOOGLE_PLACES_API_KEY` works for it too, nothing new to copy.
 - Address autocomplete (suggestions as you type) uses the same Places API
   (New) you already enabled — no extra setup needed.
-- An xAI Grok API key (no Google billing link needed — separate provider
-  from the free-tier hassle Gemini had):
-  1. Go to **console.x.ai** and sign in / sign up.
-  2. Go to **API Keys** → **Create API Key**.
+- An Anthropic API key — required, since Claude is the default text
+  provider and powers the automatic menu-photo-detection pipeline
+  regardless of which text provider you pick:
+  1. Go to **console.anthropic.com** and sign in / sign up.
+  2. Go to **API Keys** → **Create Key**.
   3. Copy the key immediately.
 - A **free** Vercel API token so the app can deploy generated sites for you:
   1. Go to **vercel.com/account/tokens**.
@@ -60,7 +61,7 @@ phase.
 2. Import the `lead-scout` GitHub repo you just created.
 3. Before clicking Deploy, open **Environment Variables** and add all of:
    - `GOOGLE_PLACES_API_KEY` = your Google Places API key
-   - `XAI_API_KEY` = your xAI Grok API key
+   - `ANTHROPIC_API_KEY` = your Anthropic API key
    - `VERCEL_API_TOKEN` = your Vercel token
 4. Click **Deploy**. In ~1 minute you'll get a URL like
    `https://lead-scout-yourname.vercel.app` — that's your dashboard.
@@ -156,14 +157,37 @@ if you don't pick Claude as your main text-writing provider — it's what
 powers this specific detection step regardless of which provider you have
 selected in the dropdown.
 
+## The template system
+
+The generator picks from a fixed set of well-built template variants based
+on business category, rather than one-size-fits-all:
+
+- **Restaurant** — dark, elegant (fine dining, bistros, bakeries, bars).
+- **Quick-service** (new) — bold, high-contrast, diner-poster energy for
+  pizza places, burger joints, and fast food.
+- **Coffee shop** — light, airy, European café feel.
+- **Ice cream shop** — playful, pastel.
+- **Generic** — clean general-purpose fallback for anything else.
+
+One honest note on scope: I did not build a fully generic engine that lets
+an AI invent arbitrary new layouts from scratch — that's unreliable to get
+right (broken CSS, nonsensical section combos, unpredictable output). What
+this genuinely does is: category-based selection among a fixed set of real,
+tested template designs, all filled from the exact same underlying data
+(business info, real reviews, real/extracted menu, real dining options) —
+so every business gets a layout that actually fits its type, without any
+of the templates being fragile or half-broken.
+
 ## Choosing your AI provider
 
 Every "Generate" button now has an **AI provider** dropdown right above it —
-**Groq**, **Gemini**, or **xAI (Grok)**. Whichever you pick is used for both
-the written copy and (if you've uploaded menu photos) reading the menu.
-Since you already have all three activated on Vercel, you can freely
-compare results or fall back to another if one is having issues. Required
-env vars for all three: `GROQ_API_KEY`, `GEMINI_API_KEY`, `XAI_API_KEY`.
+**Groq**, **Gemini**, or **Claude**. Whichever you pick is used for the
+written copy; Claude also always powers the automatic menu-photo-detection
+pipeline regardless of which one you pick for text. Since you already have
+all three activated on Vercel, you can freely compare results or fall back
+to another if one is having issues. Required env vars: `GROQ_API_KEY`,
+`GEMINI_API_KEY`, `ANTHROPIC_API_KEY` (the last one is required either
+way).
 
 ## Auto menu extraction from photos (new)
 

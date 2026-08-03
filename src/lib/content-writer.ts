@@ -1,14 +1,13 @@
 import { GeneratedContent, Lead } from "./types";
 import { detectTemplateType } from "./template-type";
 
-export type AiProvider = "groq" | "gemini" | "xai" | "claude";
+export type AiProvider = "groq" | "gemini" | "claude";
 
 // Text models per provider. Groq deprecated llama-3.3-70b-versatile in
 // mid-2026 — migrated to their recommended replacement.
 const MODELS: Record<AiProvider, string> = {
   groq: "openai/gpt-oss-120b",
   gemini: "gemini-flash-latest",
-  xai: "grok-4.3",
   claude: "claude-sonnet-5",
 };
 
@@ -23,6 +22,12 @@ general categories, NOT specific invented dish names, prices, or ingredients
 you don't actually know. Each item: {"name": short category name,
 "description": 1 sentence about the style/experience, "tag": one of
 "Chef's Pick" | "Popular" | "" }`;
+    case "quickservice":
+      return `"showcaseItems" should be 4-5 example MENU CATEGORIES for a
+quick-service spot (e.g. "Signature Pizzas", "Loaded Burgers", "Sides",
+"Combos") — general categories, NOT specific invented dish names or
+prices. Each item: {"name": short category name, "description": 1 punchy
+short sentence, "tag": "Popular" | "Best Seller" | "" }`;
     case "coffee":
       return `"showcaseItems" should be 4-5 standard coffee-shop drink/food
 CATEGORIES (e.g. "Espresso Drinks", "Cold Brew", "Pastries", "Seasonal
@@ -115,26 +120,6 @@ async function callGemini(prompt: string): Promise<string> {
   return text;
 }
 
-async function callXai(prompt: string): Promise<string> {
-  const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) throw new Error("Missing XAI_API_KEY. Add it to your environment variables.");
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: MODELS.xai,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!res.ok) throw new Error(`Grok API error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("Grok returned an empty response.");
-  return text;
-}
-
 async function callClaude(prompt: string): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY. Add it to your environment variables.");
@@ -166,18 +151,12 @@ function parseJsonLoose(text: string): any {
 export async function generateContent(
   lead: Lead,
   revisionComment?: string,
-  provider: AiProvider = "xai"
+  provider: AiProvider = "claude"
 ): Promise<GeneratedContent> {
   const prompt = buildPrompt(lead, revisionComment);
 
   const text =
-    provider === "groq"
-      ? await callGroq(prompt)
-      : provider === "gemini"
-      ? await callGemini(prompt)
-      : provider === "claude"
-      ? await callClaude(prompt)
-      : await callXai(prompt);
+    provider === "groq" ? await callGroq(prompt) : provider === "gemini" ? await callGemini(prompt) : await callClaude(prompt);
 
   try {
     return parseJsonLoose(text) as GeneratedContent;

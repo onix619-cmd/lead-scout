@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid lead payload" }, { status: 400 });
     }
 
-    const aiProvider: AiProvider = provider ?? "xai";
+    const aiProvider: AiProvider = provider ?? "claude";
     const realReviews = lead.realReviews ?? (await fetchPlaceReviews(lead.placeId));
     const finalMenuText = menuText ?? lead.menuText;
     const uploadedImages = images && images.length > 0 ? images : lead.uploadedImages;

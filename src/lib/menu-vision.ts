@@ -5,7 +5,6 @@ import { AiProvider } from "./content-writer";
 // the current one as of mid-2026. Check console.groq.com/docs if it errors.
 const GROQ_VISION_MODEL = "qwen/qwen3.6-27b";
 const GEMINI_MODEL = "gemini-flash-latest";
-const XAI_MODEL = "grok-4.3";
 const CLAUDE_MODEL = "claude-sonnet-5";
 
 const VISION_PROMPT = `This image shows a menu (or a photo containing menu
@@ -119,28 +118,6 @@ async function visionGemini(images: string[]): Promise<string> {
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-async function visionXai(images: string[]): Promise<string> {
-  const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) throw new Error("Missing XAI_API_KEY.");
-  const content: any[] = [{ type: "text", text: VISION_PROMPT }];
-  for (const img of images.slice(0, 3)) {
-    content.push({ type: "image_url", image_url: { url: img } });
-  }
-  const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: XAI_MODEL,
-      messages: [{ role: "user", content }],
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!res.ok) throw new Error(`Grok vision error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
-}
-
 async function visionClaude(images: string[]): Promise<string> {
   return callClaude(VISION_PROMPT, images.slice(0, 3));
 }
@@ -162,7 +139,7 @@ function toMenuSections(parsed: any): MenuSection[] {
 // back to manual paste or a "View Menu" link instead.
 export async function extractMenuFromImages(
   images: string[],
-  provider: AiProvider = "xai"
+  provider: AiProvider = "claude"
 ): Promise<MenuSection[]> {
   if (!images || images.length === 0) return [];
   try {
@@ -171,9 +148,7 @@ export async function extractMenuFromImages(
         ? await visionGroq(images)
         : provider === "gemini"
         ? await visionGemini(images)
-        : provider === "claude"
-        ? await visionClaude(images)
-        : await visionXai(images);
+        : await visionClaude(images);
 
     return toMenuSections(parseJsonLoose(text));
   } catch {
