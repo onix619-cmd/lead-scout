@@ -8,11 +8,19 @@ const GEMINI_MODEL = "gemini-flash-latest";
 const CLAUDE_MODEL = "claude-sonnet-5";
 
 const VISION_PROMPT = `This image shows a menu (or a photo containing menu
-text) from a real business. Read ONLY the text that is actually visible in
-the image — item names and prices. Do not invent, guess, or add anything
-that isn't legible. If you can't clearly read a price for an item, omit the
-price for that item rather than guessing. If this image does not contain a
-readable menu at all, return an empty items array.
+text) from a real business. Extract ONLY real, legible text — item names
+and prices actually printed/displayed in the image.
+
+Ignore anything that isn't text: logos, icons, decorative borders, food
+photography, illustrations, background patterns, watermarks. Do not
+describe or interpret images/graphics on the menu — skip them entirely and
+extract only readable words and numbers.
+
+Do not invent, guess, or add anything that isn't legible. If you can't
+clearly read a price for an item, omit the price for that item rather than
+guessing. If this image does not contain a readable menu at all (e.g. it's
+just food photography, the storefront, or decor with no menu text), return
+an empty items array.
 
 Respond with ONLY valid JSON, no markdown fences, in this shape:
 {
@@ -23,9 +31,11 @@ Respond with ONLY valid JSON, no markdown fences, in this shape:
 }`;
 
 const CLASSIFY_PROMPT = `Look at this photo from a business's Google Maps
-listing. Answer only: is this image a photo of a menu (a printed/digital
-menu board, menu page, or price list)? Respond with ONLY valid JSON, no
-markdown fences: {"isMenu": true or false}`;
+listing. Answer only: does this image contain readable menu text — item
+names and/or prices (a printed/digital menu board, menu page, chalkboard
+price list, etc.)? A photo of food, the storefront, decor, or people does
+NOT count, even if appetizing — only real text counts. Respond with ONLY
+valid JSON, no markdown fences: {"isMenu": true or false}`;
 
 function dataUrlParts(dataUrl: string): { mime: string; base64: string } | null {
   const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);

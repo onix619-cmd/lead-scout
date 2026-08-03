@@ -41,7 +41,7 @@ const CATEGORIES = [
   "Bookstores",
 ];
 
-const RADIUS_OPTIONS = [5, 10, 20,40];
+const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
 
 const PROVINCES = [
   "Alberta",
@@ -60,13 +60,13 @@ const PROVINCES = [
 ];
 
 const priorityStyle: Record<Lead["priority"], string> = {
-  high: "border-orange-500 text-orange-400",
-  medium: "border-[#fdc700] text-[#fdc700]",
-  low: "border-neutral-700 text-neutral-500",
+  high: "bg-red-50 border-red-300 text-red-700",
+  medium: "bg-[#fffbea] border-[#fdc700] text-[#8a6d00]",
+  low: "bg-slate-50 border-slate-300 text-slate-500",
 };
 
 export default function Dashboard() {
-  const [category, setCategory] = useState("Choose");
+  const [category, setCategory] = useState("Restaurants");
   const [showCategoryList, setShowCategoryList] = useState(false);
   const [address, setAddress] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
@@ -207,24 +207,24 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white font-mono">
+    <main className="min-h-screen bg-[#eef4fb] text-slate-900">
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <header className="mb-8 border-b-2 border-orange-500 pb-4">
-          <h1 className="text-3xl font-bold tracking-widest text-orange-500 uppercase">
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#0f2a4a] uppercase">
             Business Website Generator
           </h1>
-          <p className="text-neutral-400 mt-1">
+          <p className="text-slate-500 mt-1">
             Find local businesses near an address and see which ones need a better website.
           </p>
         </header>
 
         <form
           onSubmit={handleSearch}
-          className="bg-neutral-950 border-2 border-orange-600 rounded-none p-6 mb-8"
+          className="bg-white border border-blue-100 rounded-xl shadow-sm p-6 mb-8"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="relative">
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
                 Category
               </label>
               <div className="flex">
@@ -238,7 +238,7 @@ export default function Dashboard() {
                   onBlur={() => setTimeout(() => setShowCategoryList(false), 150)}
                   placeholder="e.g. Restaurants, Plumbers..."
                   autoComplete="off"
-                  className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                  className="w-full bg-white border border-sky-200 rounded-l-lg px-3 py-2 text-sm text-slate-900 placeholder-sky-400 focus:outline-none focus:border-sky-400"
                 />
                 {category && (
                   <button
@@ -247,7 +247,7 @@ export default function Dashboard() {
                       setCategory("");
                       setShowCategoryList(true);
                     }}
-                    className="border border-l-0 border-orange-700 px-2 text-orange-500 text-sm"
+                    className="border border-l-0 border-sky-200 px-2 text-sky-500 text-sm"
                     title="Clear"
                   >
                     ✕
@@ -256,14 +256,14 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onMouseDown={() => setShowCategoryList((prev) => !prev)}
-                  className="border border-l-0 border-orange-700 px-3 text-orange-500 text-xs"
+                  className="border border-l-0 border-sky-200 rounded-r-lg px-3 text-sky-500 text-xs"
                   title="Show all categories"
                 >
                   ▼
                 </button>
               </div>
               {showCategoryList && (
-                <ul className="absolute z-10 left-0 right-0 mt-1 bg-black border border-orange-700 max-h-56 overflow-y-auto">
+                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-sky-200 rounded-lg shadow-md max-h-56 overflow-y-auto">
                   {(category.trim()
                     ? CATEGORIES.filter((c) => c.toLowerCase().includes(category.toLowerCase()))
                     : CATEGORIES
@@ -275,7 +275,7 @@ export default function Dashboard() {
                           setCategory(c);
                           setShowCategoryList(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-orange-950"
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
                       >
                         {c}
                       </button>
@@ -283,7 +283,7 @@ export default function Dashboard() {
                   ))}
                   {category.trim() &&
                     !CATEGORIES.some((c) => c.toLowerCase().includes(category.toLowerCase())) && (
-                      <li className="px-3 py-2 text-xs text-neutral-500">
+                      <li className="px-3 py-2 text-xs text-slate-400">
                         No matches — you can still search "{category}" as a custom category.
                       </li>
                     )}
@@ -292,7 +292,7 @@ export default function Dashboard() {
             </div>
 
             <div className="relative">
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
                 Address
               </label>
               <input
@@ -306,10 +306,10 @@ export default function Dashboard() {
                 placeholder="123 Main St, Montreal, QC"
                 required
                 autoComplete="off"
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-sky-400 focus:outline-none focus:border-sky-400"
               />
               {showSuggestions && addressSuggestions.length > 0 && (
-                <ul className="absolute z-10 left-0 right-0 mt-1 bg-black border border-orange-700 max-h-56 overflow-y-auto">
+                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-sky-200 rounded-lg shadow-md max-h-56 overflow-y-auto">
                   {addressSuggestions.map((s) => (
                     <li key={s.placeId}>
                       <button
@@ -319,7 +319,7 @@ export default function Dashboard() {
                           setAddressSuggestions([]);
                           setShowSuggestions(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-neutral-200 hover:bg-orange-950"
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
                       >
                         {s.text}
                       </button>
@@ -332,13 +332,13 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
                 Province
               </label>
               <select
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400"
               >
                 {PROVINCES.map((p) => (
                   <option key={p} value={p}>
@@ -348,13 +348,13 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
                 Search radius
               </label>
               <select
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="w-full bg-black border border-orange-700 rounded-none px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-400"
+                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400"
               >
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>
@@ -364,7 +364,7 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-orange-500 uppercase tracking-wide block mb-1">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
                 Minimum rating: {minRating}★
               </label>
               <input
@@ -374,27 +374,27 @@ export default function Dashboard() {
                 step={0.5}
                 value={minRating}
                 onChange={(e) => setMinRating(Number(e.target.value))}
-                className="w-full accent-orange-500 mt-2"
+                className="w-full accent-green-600 mt-2"
               />
             </div>
           </div>
 
           <div className="flex flex-wrap gap-6 mt-5">
-            <label className="flex items-center gap-2 text-sm text-neutral-300">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={includeNoWebsite}
                 onChange={(e) => setIncludeNoWebsite(e.target.checked)}
-                className="accent-orange-500"
+                className="accent-blue-600"
               />
               Businesses without websites
             </label>
-            <label className="flex items-center gap-2 text-sm text-neutral-300">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
                 checked={includeOutdated}
                 onChange={(e) => setIncludeOutdated(e.target.checked)}
-                className="accent-orange-500"
+                className="accent-blue-600"
               />
               Businesses with outdated websites
             </label>
@@ -403,35 +403,35 @@ export default function Dashboard() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 bg-orange-500 text-black text-sm font-bold uppercase tracking-wide px-6 py-2.5 rounded-none hover:bg-orange-400 disabled:opacity-50"
+            className="mt-6 bg-green-600 text-white text-sm font-bold uppercase tracking-wide px-6 py-2.5 rounded-lg hover:bg-green-500 disabled:opacity-50"
           >
             {loading ? "Searching…" : "Search"}
           </button>
-          <p className="text-xs text-neutral-500 mt-2">
+          <p className="text-xs text-slate-400 mt-2">
             Fetches up to 100 results within the chosen radius (using a few overlapping sub-searches), sorted by priority.
           </p>
         </form>
 
         {error && (
-          <div className="bg-neutral-950 border-2 border-orange-500 text-orange-400 text-sm px-4 py-3 mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
             {error}
           </div>
         )}
 
         {leads.length > 0 && (
-          <div className="bg-neutral-950 border-2 border-orange-700">
-            <div className="px-6 py-4 border-b border-orange-800 text-sm text-neutral-400 uppercase tracking-wide">
+          <div className="bg-white border border-blue-100 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-blue-100 text-sm text-slate-500 uppercase tracking-wide">
               {leads.length} result{leads.length !== 1 ? "s" : ""}
             </div>
-            <ul className="divide-y divide-neutral-800">
+            <ul className="divide-y divide-blue-50">
               {leads.map((lead) => (
                 <li key={lead.placeId} className="px-6 py-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-white">{lead.name}</span>
+                        <span className="font-bold text-slate-900">{lead.name}</span>
                         <span
-                          className={`text-xs border rounded-none px-2 py-0.5 uppercase tracking-wide ${priorityStyle[lead.priority]}`}
+                          className={`text-xs border rounded-full px-2 py-0.5 uppercase tracking-wide ${priorityStyle[lead.priority]}`}
                         >
                           {lead.priority} priority
                         </span>
@@ -439,17 +439,17 @@ export default function Dashboard() {
                           <span className="text-xs flex items-center gap-0.5">
                             <span className="text-yellow-400">
                               {"★".repeat(Math.round(lead.rating))}
-                              <span className="text-neutral-700">
+                              <span className="text-slate-200">
                                 {"★".repeat(5 - Math.round(lead.rating))}
                               </span>
                             </span>
-                            <span className="text-neutral-400 ml-1">
+                            <span className="text-slate-500 ml-1">
                               {lead.rating} ({lead.reviewCount})
                             </span>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-neutral-400 mt-0.5 truncate">
+                      <p className="text-sm text-slate-500 mt-0.5 truncate">
                         {lead.address}
                       </p>
                       <div className="mt-1.5 flex items-center gap-3 text-xs flex-wrap">
@@ -463,7 +463,7 @@ export default function Dashboard() {
                           </a>
                         )}
                         {lead.phone && (
-                          <a href={`tel:${lead.phone}`} className="text-neutral-300 underline underline-offset-2">
+                          <a href={`tel:${lead.phone}`} className="text-slate-600 underline underline-offset-2">
                             {lead.phone}
                           </a>
                         )}
@@ -471,7 +471,7 @@ export default function Dashboard() {
                           <a
                             href={lead.website}
                             target="_blank"
-                            className="text-orange-400 underline underline-offset-2"
+                            className="text-blue-600 underline underline-offset-2"
                           >
                             Visit site ↗
                           </a>
@@ -480,35 +480,35 @@ export default function Dashboard() {
                       <div className="mt-2 flex items-center gap-3 text-sm">
                         {lead.websiteScore.hasWebsite ? (
                           <>
-                            <span className="font-medium text-orange-400">
+                            <span className="font-medium text-blue-600">
                               Website score: {lead.websiteScore.score}/100
                             </span>
                             <button
                               onClick={() =>
                                 setExpanded(expanded === lead.placeId ? null : lead.placeId)
                               }
-                              className="text-neutral-400 underline underline-offset-2"
+                              className="text-slate-400 underline underline-offset-2"
                             >
                               {expanded === lead.placeId ? "Hide details" : "Show details"}
                             </button>
                           </>
                         ) : (
-                          <span className="text-orange-500 font-bold">No website</span>
+                          <span className="text-red-600 font-bold">No website</span>
                         )}
                       </div>
                       {expanded === lead.placeId && lead.websiteScore.hasWebsite && (
-                        <div className="mt-3 bg-black border border-neutral-800 p-3 text-sm">
+                        <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm">
                           <ul className="grid grid-cols-2 gap-1 mb-2">
                             {lead.websiteScore.checks.map((c) => (
-                              <li key={c.label} className={c.passed ? "text-neutral-300" : "text-neutral-600"}>
+                              <li key={c.label} className={c.passed ? "text-slate-700" : "text-slate-400"}>
                                 {c.passed ? "✓" : "✕"} {c.label}
                               </li>
                             ))}
                           </ul>
                           {lead.websiteScore.suggestions.length > 0 && (
                             <>
-                              <p className="font-bold text-orange-400 mt-2 mb-1">Needs improvement:</p>
-                              <ul className="list-disc list-inside text-neutral-300">
+                              <p className="font-bold text-blue-700 mt-2 mb-1">Needs improvement:</p>
+                              <ul className="list-disc list-inside text-slate-600">
                                 {lead.websiteScore.suggestions.map((s) => (
                                   <li key={s}>{s}</li>
                                 ))}
@@ -532,12 +532,12 @@ export default function Dashboard() {
                                 key={i}
                                 src={src}
                                 alt={lead.name}
-                                className="w-1/2 h-28 object-cover border border-neutral-800"
+                                className="w-1/2 h-28 object-cover rounded-lg border border-slate-200"
                               />
                             ))}
                         </div>
                       )}
-                      <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900">
+                      <label className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 w-full text-center cursor-pointer hover:bg-slate-50">
                         {images[lead.placeId]?.length
                           ? `${images[lead.placeId].length} photo(s) added`
                           : "Upload photos"}
@@ -550,7 +550,7 @@ export default function Dashboard() {
                         />
                       </label>
                       <details className="w-full">
-                        <summary className="text-[11px] text-neutral-400 border border-neutral-700 px-3 py-1.5 text-center cursor-pointer hover:bg-neutral-900 list-none">
+                        <summary className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 text-center cursor-pointer hover:bg-slate-50 list-none">
                           {menuTexts[lead.placeId]?.trim() ? "Menu added ✓" : "Paste real menu (optional)"}
                         </summary>
                         <textarea
@@ -560,20 +560,20 @@ export default function Dashboard() {
                           }
                           placeholder={"## Starters\nCaesar Salad - $12\nSoup of the Day - $8\n\n## Mains\nGrilled Salmon - $24"}
                           rows={5}
-                          className="w-full mt-1.5 bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 placeholder-neutral-600 focus:outline-none focus:border-orange-500"
+                          className="w-full mt-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 placeholder-slate-400 focus:outline-none focus:border-sky-400"
                         />
-                        <p className="text-[10px] text-neutral-500 mt-1">
+                        <p className="text-[10px] text-slate-400 mt-1">
                           One item per line: "Name - $Price". Use "## Category" for section headers.
                         </p>
                       </details>
                       <div className="w-full">
-                        <label className="text-[10px] text-neutral-500 block mb-1">Website template</label>
+                        <label className="text-[10px] text-slate-500 block mb-1">Website template</label>
                         <select
                           value={templateOverrides[lead.placeId] ?? ""}
                           onChange={(e) =>
                             setTemplateOverrides((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
                           }
-                          className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
+                          className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 focus:outline-none focus:border-sky-400"
                         >
                           <option value="">Auto (by category)</option>
                           <option value="restaurant-1">Restaurant — Style 1</option>
@@ -582,13 +582,13 @@ export default function Dashboard() {
                         </select>
                       </div>
                       <div className="w-full">
-                        <label className="text-[10px] text-neutral-500 block mb-1">AI provider</label>
+                        <label className="text-[10px] text-slate-500 block mb-1">AI provider</label>
                         <select
                           value={providers[lead.placeId] ?? "groq"}
                           onChange={(e) =>
                             setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" }))
                           }
-                          className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
+                          className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 focus:outline-none focus:border-sky-400"
                         >
                           <option value="groq">Groq</option>
                           <option value="gemini">Gemini</option>
@@ -598,7 +598,7 @@ export default function Dashboard() {
                         <a
                           href={generatedUrls[lead.placeId]}
                           target="_blank"
-                          className="text-xs font-bold text-black rounded-none px-3 py-1.5 bg-orange-500 hover:bg-orange-400 whitespace-nowrap text-center w-full uppercase"
+                          className="text-xs font-bold text-white rounded-lg px-3 py-1.5 bg-green-600 hover:bg-green-500 whitespace-nowrap text-center w-full uppercase"
                         >
                           View live site ↗
                         </a>
@@ -606,7 +606,7 @@ export default function Dashboard() {
                         <button
                           onClick={() => handleGenerate(lead)}
                           disabled={generating.has(lead.placeId)}
-                          className="text-xs font-bold text-orange-400 border border-orange-600 rounded-none px-3 py-1.5 hover:bg-orange-950 disabled:opacity-50 whitespace-nowrap w-full uppercase"
+                          className="text-xs font-bold text-blue-600 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-50 disabled:opacity-50 whitespace-nowrap w-full uppercase"
                         >
                           {generating.has(lead.placeId)
                             ? "Generating…"
@@ -624,31 +624,31 @@ export default function Dashboard() {
                             }
                             placeholder="e.g. darker colors, add brunch mention..."
                             rows={2}
-                            className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 placeholder-neutral-600 focus:outline-none focus:border-orange-500"
+                            className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 placeholder-slate-400 focus:outline-none focus:border-sky-400"
                           />
                           <button
                             onClick={() => handleGenerate(lead, true)}
                             disabled={generating.has(lead.placeId) || !comments[lead.placeId]?.trim()}
-                            className="mt-1 text-[11px] font-bold text-orange-400 border border-orange-600 rounded-none px-3 py-1 hover:bg-orange-950 disabled:opacity-40 whitespace-nowrap w-full uppercase"
+                            className="mt-1 text-[11px] font-bold text-blue-600 border border-blue-300 rounded-lg px-3 py-1 hover:bg-blue-50 disabled:opacity-40 whitespace-nowrap w-full uppercase"
                           >
                             {generating.has(lead.placeId) ? "Regenerating…" : "Regenerate with feedback"}
                           </button>
                         </div>
                       )}
                       {genErrors[lead.placeId] && (
-                        <p className="text-xs text-orange-500 text-right">{genErrors[lead.placeId]}</p>
+                        <p className="text-xs text-red-600 text-right">{genErrors[lead.placeId]}</p>
                       )}
                       <button
                         onClick={() => handleSave(lead)}
                         disabled={savedIds.has(lead.placeId)}
-                        className="text-xs font-medium border border-neutral-700 text-neutral-300 rounded-none px-3 py-1.5 hover:bg-neutral-900 disabled:opacity-50 whitespace-nowrap w-full"
+                        className="text-xs font-medium border border-slate-300 text-slate-600 rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap w-full"
                       >
                         {savedIds.has(lead.placeId) ? "Saved ✓" : "Save to CRM"}
                       </button>
                       <a
                         href={lead.mapsUrl}
                         target="_blank"
-                        className="text-xs text-neutral-500 underline underline-offset-2"
+                        className="text-xs text-slate-400 underline underline-offset-2"
                       >
                         View on Maps
                       </a>
