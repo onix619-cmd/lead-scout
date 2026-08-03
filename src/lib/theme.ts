@@ -1,6 +1,6 @@
 import { detectTemplateType } from "./template-type";
 
-export type ThemeKey = "restaurant" | "quickservice" | "coffee" | "icecream" | "generic";
+export type ThemeKey = "restaurant" | "coffee" | "icecream" | "generic";
 
 export type Theme = {
   key: ThemeKey;
@@ -52,20 +52,6 @@ export function getTheme(key: ThemeKey, businessName: string): Theme {
         labels: { featured: "Signature Dishes", reserveCta: "Reserve a Table", menu: "Menu" },
       };
     }
-    case "quickservice":
-      return {
-        key,
-        googleFontsUrl: "https://fonts.googleapis.com/css2?family=Anton&family=Nunito:wght@400;700;900&display=swap",
-        fontHeading: "'Anton', sans-serif",
-        fontBody: "'Nunito', sans-serif",
-        primary: "#e63946",
-        accent: "#ffb703",
-        dark: "#1d1d1d",
-        text: "#ffffff",
-        radius: "0px",
-        playful: false,
-        labels: { featured: "The Menu", reserveCta: "Order Now", menu: "Menu" },
-      };
     case "coffee":
       return {
         key,

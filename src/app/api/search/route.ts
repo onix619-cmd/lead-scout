@@ -69,17 +69,24 @@ export async function POST(req: NextRequest) {
       return true;
     });
 
-    filtered.sort((a, b) => {
-      // No-website leads first, then websites ordered worst score to best
-      // (most outdated first) — a clearer "most in need of help" ordering
-      // than the old high/medium/low buckets alone.
-      if (!a.websiteScore.hasWebsite && b.websiteScore.hasWebsite) return -1;
-      if (a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 1;
-      if (!a.websiteScore.hasWebsite && !b.websiteScore.hasWebsite) return 0;
-      return a.websiteScore.score - b.websiteScore.score;
-    });
+    // No-website leads first, then leads with a website — that priority
+    // grouping stays fixed. Within each group, order is shuffled fresh on
+    // every search instead of sorted, so you don't see the same order
+    // every time you search the same area/category.
+    function shuffle<T>(arr: T[]): T[] {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
 
-    return NextResponse.json({ leads: filtered, center });
+    const withoutWebsite = shuffle(filtered.filter((l) => !l.websiteScore.hasWebsite));
+    const withWebsite = shuffle(filtered.filter((l) => l.websiteScore.hasWebsite));
+    const finalLeads = [...withoutWebsite, ...withWebsite];
+
+    return NextResponse.json({ leads: finalLeads, center });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json(

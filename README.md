@@ -178,6 +178,33 @@ tested template designs, all filled from the exact same underlying data
 so every business gets a layout that actually fits its type, without any
 of the templates being fragile or half-broken.
 
+## The template system
+
+Category-based auto-detection is still the default (restaurant/coffee/ice
+cream/generic), but you can now override it per lead with the **Website
+template** dropdown: **Auto**, **Restaurant — Style 1**, **Restaurant —
+Style 2**, or **Coffee Shop**. Restaurant Style 1/2 are the two gradient
+variants (gold→orange vs orange→gold) that used to be picked randomly —
+now you choose directly. (Note: the earlier "quick-service" template for
+pizza/burgers/fast-food was removed per a later request — those categories
+fall back to the restaurant template again.)
+
+## Order / Grab quick widget
+
+Every generated site now has a small "Order & Grab" section right under
+the hero — a text box where a visitor types what they want, and a "Send
+Order" button that opens WhatsApp with that typed message ready to send.
+Simpler and faster than the full reservation form for a quick pickup/
+delivery order. Only shows up when the business has a phone number (no
+WhatsApp number, no widget).
+
+## Search results: shuffled each time
+
+Results still put "no website" leads ahead of "has a website" leads (that
+priority grouping is fixed), but the order *within* each group is now
+shuffled fresh on every search — so searching the same category/area twice
+won't show you the exact same list in the exact same order.
+
 ## Choosing your AI provider
 
 Every "Generate" button now has an **AI provider** dropdown right above it —

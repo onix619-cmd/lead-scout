@@ -2,7 +2,6 @@ import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
-import { generateQuickServiceLandingPageHTML } from "./template-quickservice";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -27,25 +26,36 @@ function schemaTypeFor(themeKey: string) {
   return "LocalBusiness";
 }
 
+export type TemplateOverride = "restaurant-1" | "restaurant-2" | "coffee" | undefined;
+
 export function generateLandingPageHTML(
   lead: Lead,
   content: GeneratedContent,
   menuSections: MenuSection[] = [],
   variant: "A" | "B" = Math.random() < 0.5 ? "A" : "B",
-  originalMenuPhotoUrl?: string
+  originalMenuPhotoUrl?: string,
+  templateOverride?: TemplateOverride
 ): string {
-  const themeKey = detectThemeKey(lead.category, lead.name);
+  let themeKey = detectThemeKey(lead.category, lead.name);
+  let effectiveVariant = variant;
+
+  if (templateOverride === "coffee") {
+    themeKey = "coffee";
+  } else if (templateOverride === "restaurant-1") {
+    themeKey = "restaurant";
+    effectiveVariant = "A";
+  } else if (templateOverride === "restaurant-2") {
+    themeKey = "restaurant";
+    effectiveVariant = "B";
+  }
 
   if (themeKey === "coffee") {
     return generateCoffeeLandingPageHTML(lead, content, menuSections, originalMenuPhotoUrl);
   }
-  if (themeKey === "quickservice") {
-    return generateQuickServiceLandingPageHTML(lead, content, menuSections, originalMenuPhotoUrl);
-  }
 
   const theme = getTheme(themeKey, lead.name);
   const R = themeKey === "restaurant"; // full dark, elegant/gold variant
-  const isB = R && variant === "B"; // second visual variant: sharp corners + accent color
+  const isB = R && effectiveVariant === "B"; // second visual variant: sharp corners + accent color
   const wa = waLink(lead.phone);
   const waNum = waDigits(lead.phone);
   const filledStars = Math.round(lead.rating ?? 0);
@@ -237,7 +247,7 @@ ${theme.playful ? `
     <p class="text-white/90 text-lg sm:text-xl mt-4 max-w-xl">${escapeHtml(content.tagline)}</p>
     ${!R ? `<p class="text-white/70 text-sm mt-2 uppercase tracking-widest">${escapeHtml(lead.category)}</p>` : ""}
     <div class="mt-8 flex flex-wrap gap-3 justify-center">
-      ${wa ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to place an order for pickup/delivery.`)}" target="_blank" class="px-6 py-3 r-card font-medium btn-primary hover-scale">Order Now</a>` : ""}
+      ${wa ? `<a href="#order-grab" class="px-6 py-3 r-card font-medium btn-primary hover-scale">Order / Grab</a>` : ""}
       <a href="#reserve" class="px-6 py-3 r-card ${wa ? "bg-white/10 text-white border border-white/40" : "font-medium btn-primary"} hover-scale">Reservation</a>
       ${wa ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to ask about hosting a private event.`)}" target="_blank" class="px-6 py-3 r-card bg-white/10 text-white font-medium border border-white/40 hover-scale">Private Events</a>` : ""}
     </div>
@@ -249,6 +259,20 @@ ${theme.playful ? `
     </div>
   </div>
 </header>
+
+${wa ? `
+<!-- Order / Grab quick widget -->
+<section id="order-grab" class="py-14" style="background:var(--accent);">
+  <div class="max-w-md mx-auto px-6 text-center">
+    <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Quick Order</p>
+    <h2 class="text-2xl font-semibold mb-4 font-display">Order &amp; Grab</h2>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input id="grab-order-text" type="text" placeholder="What would you like to order?" class="flex-1 min-w-0 rounded-md px-4 py-3 text-sm ${R ? "bg-black/30 border border-white/15 text-white placeholder-white/40" : "bg-white border border-slate-300 text-slate-900"}" />
+      <button type="button" onclick="sendGrabOrder()" class="btn-primary font-medium px-5 py-3 r-card whitespace-nowrap hover-scale">Send Order ↗</button>
+    </div>
+    <p class="text-xs mt-2" style="${mutedStyle}">Opens WhatsApp with your order typed in — just hit send.</p>
+  </div>
+</section>` : ""}
 
 ${R ? `
 <!-- Why Choose Us -->
@@ -614,6 +638,13 @@ ${philosophyImage ? `
       ? `window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');`
       : `alert('Thanks ' + name + '! Please call us directly to confirm: ${escapeHtml(lead.phone ?? "see contact section")}');`}
   });
+
+  function sendGrabOrder() {
+    const input = document.getElementById('grab-order-text');
+    const text = input ? input.value.trim() : '';
+    const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + (text || '[details]') + '.';
+    window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');
+  }
 
   let menuCarouselIndex = 0;
   function menuCarouselMove(dir) {

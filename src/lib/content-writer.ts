@@ -22,12 +22,6 @@ general categories, NOT specific invented dish names, prices, or ingredients
 you don't actually know. Each item: {"name": short category name,
 "description": 1 sentence about the style/experience, "tag": one of
 "Chef's Pick" | "Popular" | "" }`;
-    case "quickservice":
-      return `"showcaseItems" should be 4-5 example MENU CATEGORIES for a
-quick-service spot (e.g. "Signature Pizzas", "Loaded Burgers", "Sides",
-"Combos") — general categories, NOT specific invented dish names or
-prices. Each item: {"name": short category name, "description": 1 punchy
-short sentence, "tag": "Popular" | "Best Seller" | "" }`;
     case "coffee":
       return `"showcaseItems" should be 4-5 standard coffee-shop drink/food
 CATEGORIES (e.g. "Espresso Drinks", "Cold Brew", "Pastries", "Seasonal

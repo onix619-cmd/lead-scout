@@ -61,7 +61,7 @@ const PROVINCES = [
 
 const priorityStyle: Record<Lead["priority"], string> = {
   high: "border-orange-500 text-orange-400",
-  medium: "border-orange-700 text-orange-600",
+  medium: "border-[#fdc700] text-[#fdc700]",
   low: "border-neutral-700 text-neutral-500",
 };
 
@@ -87,6 +87,7 @@ export default function Dashboard() {
   const [images, setImages] = useState<Record<string, string[]>>({});
   const [menuTexts, setMenuTexts] = useState<Record<string, string>>({});
   const [providers, setProviders] = useState<Record<string, "groq" | "gemini" | "claude">>({});
+  const [templateOverrides, setTemplateOverrides] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -174,6 +175,7 @@ export default function Dashboard() {
           menuText: menuTexts[lead.placeId],
           comment: withComment ? comments[lead.placeId] : undefined,
           provider: providers[lead.placeId] ?? "claude",
+          templateOverride: templateOverrides[lead.placeId] || undefined,
         }),
       });
       const data = await res.json();
@@ -560,6 +562,21 @@ export default function Dashboard() {
                           One item per line: "Name - $Price". Use "## Category" for section headers.
                         </p>
                       </details>
+                      <div className="w-full">
+                        <label className="text-[10px] text-neutral-500 block mb-1">Website template</label>
+                        <select
+                          value={templateOverrides[lead.placeId] ?? ""}
+                          onChange={(e) =>
+                            setTemplateOverrides((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
+                          }
+                          className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
+                        >
+                          <option value="">Auto (by category)</option>
+                          <option value="restaurant-1">Restaurant — Style 1</option>
+                          <option value="restaurant-2">Restaurant — Style 2</option>
+                          <option value="coffee">Coffee Shop</option>
+                        </select>
+                      </div>
                       <div className="w-full">
                         <label className="text-[10px] text-neutral-500 block mb-1">AI provider</label>
                         <select

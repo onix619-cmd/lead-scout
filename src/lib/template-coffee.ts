@@ -115,11 +115,25 @@ ${heroImage ? `<meta property="og:image" content="${heroImage}" />` : ""}
     <h1 class="text-white text-4xl sm:text-6xl font-bold uppercase drop-shadow">${escapeHtml(lead.name)}</h1>
     <p class="text-white/90 text-lg mt-4 max-w-lg">${escapeHtml(content.tagline)}</p>
     <div class="mt-8 flex flex-wrap gap-3 justify-center">
-      <a href="#menu" class="px-6 py-3 rounded-full font-medium hover-scale" style="background:#c9a24b; color:#241c15;">Discover the Menu</a>
+      ${wa ? `<a href="#order-grab" class="px-6 py-3 rounded-full font-medium hover-scale" style="background:#c9a24b; color:#241c15;">Order / Grab</a>` : `<a href="#menu" class="px-6 py-3 rounded-full font-medium hover-scale" style="background:#c9a24b; color:#241c15;">Discover the Menu</a>`}
       <a href="#visit" class="px-6 py-3 rounded-full font-medium border border-white/60 text-white hover-scale">Visit Us</a>
     </div>
   </div>
 </header>
+
+${wa ? `
+<!-- Order / Grab quick widget -->
+<section id="order-grab" class="py-14" style="background:#f3e6d3;">
+  <div class="max-w-md mx-auto px-6 text-center">
+    <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:#6f4e37;">Quick Order</p>
+    <h2 class="text-2xl font-semibold mb-4 font-display">Order &amp; Grab</h2>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input id="grab-order-text" type="text" placeholder="What would you like to order?" class="flex-1 min-w-0 rounded-md px-4 py-3 text-sm bg-white border border-[#d9c7a8] text-[#2b2118]" />
+      <button type="button" onclick="sendGrabOrder()" class="font-medium px-5 py-3 rounded-md whitespace-nowrap hover-scale" style="background:#c9a24b; color:#241c15;">Send Order ↗</button>
+    </div>
+    <p class="text-xs text-[#5a4c3c] mt-2">Opens WhatsApp with your order typed in — just hit send.</p>
+  </div>
+</section>` : ""}
 
 <!-- About -->
 <section id="about" class="max-w-6xl mx-auto px-6 py-20 grid sm:grid-cols-2 gap-12 items-center reveal">
@@ -273,6 +287,13 @@ ${galleryImages.length > 1 ? `
     document.querySelectorAll('.menu-carousel-dot').forEach((dot, i) => {
       dot.style.background = i === menuCarouselIndex ? '#c9a24b' : 'rgba(36,28,21,0.2)';
     });
+  }
+
+  function sendGrabOrder() {
+    const input = document.getElementById('grab-order-text');
+    const text = input ? input.value.trim() : '';
+    const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + (text || '[details]') + '.';
+    window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');
   }
 
   const observer = new IntersectionObserver((entries) => {
