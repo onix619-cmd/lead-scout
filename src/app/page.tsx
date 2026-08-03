@@ -86,7 +86,7 @@ export default function Dashboard() {
   const [genErrors, setGenErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<Record<string, string[]>>({});
   const [menuTexts, setMenuTexts] = useState<Record<string, string>>({});
-  const [providers, setProviders] = useState<Record<string, "groq" | "gemini" | "claude">>({});
+  const [providers, setProviders] = useState<Record<string, "groq" | "gemini">>({});
   const [templateOverrides, setTemplateOverrides] = useState<Record<string, string>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -174,7 +174,7 @@ export default function Dashboard() {
           images: images[lead.placeId],
           menuText: menuTexts[lead.placeId],
           comment: withComment ? comments[lead.placeId] : undefined,
-          provider: providers[lead.placeId] ?? "claude",
+          provider: providers[lead.placeId] ?? "groq",
           templateOverride: templateOverrides[lead.placeId] || undefined,
         }),
       });
@@ -519,20 +519,24 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex gap-1.5 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0 w-52">
                       {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
                         .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
-                        .slice(0, 2)
-                        .map((src, i) => (
-                          <img
-                            key={i}
-                            src={src}
-                            alt={lead.name}
-                            className="w-20 h-20 object-cover border border-neutral-800"
-                          />
-                        ))}
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0 w-52">
+                        .slice(0, 2).length > 0 && (
+                        <div className="flex gap-1.5 w-full">
+                          {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
+                            .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
+                            .slice(0, 2)
+                            .map((src, i) => (
+                              <img
+                                key={i}
+                                src={src}
+                                alt={lead.name}
+                                className="w-1/2 h-28 object-cover border border-neutral-800"
+                              />
+                            ))}
+                        </div>
+                      )}
                       <label className="text-[11px] text-neutral-400 border border-neutral-700 rounded-none px-3 py-1.5 w-full text-center cursor-pointer hover:bg-neutral-900">
                         {images[lead.placeId]?.length
                           ? `${images[lead.placeId].length} photo(s) added`
@@ -580,15 +584,14 @@ export default function Dashboard() {
                       <div className="w-full">
                         <label className="text-[10px] text-neutral-500 block mb-1">AI provider</label>
                         <select
-                          value={providers[lead.placeId] ?? "claude"}
+                          value={providers[lead.placeId] ?? "groq"}
                           onChange={(e) =>
-                            setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" | "claude" }))
+                            setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" }))
                           }
                           className="w-full bg-black border border-neutral-700 text-white text-[11px] px-2 py-1.5 focus:outline-none focus:border-orange-500"
                         >
                           <option value="groq">Groq</option>
                           <option value="gemini">Gemini</option>
-                          <option value="claude">Claude (menu photo detection)</option>
                         </select>
                       </div>
                       {generatedUrls[lead.placeId] ? (
