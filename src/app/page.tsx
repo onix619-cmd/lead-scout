@@ -570,6 +570,7 @@ export default function Dashboard() {
                           <option value="">Auto (by category)</option>
                           <option value="restaurant-1">Restaurant — Style 1</option>
                           <option value="restaurant-2">Restaurant — Style 2</option>
+                          <option value="restaurant-3">Restaurant — Style 3 (Creative)</option>
                           <option value="coffee">Coffee Shop</option>
                         </select>
                       </div>
