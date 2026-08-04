@@ -25,11 +25,10 @@ export function generateLandingPageHTML(
   menuSections: MenuSection[] = [],
   originalMenuPhotoUrl?: string
 ): string {
-  const isB = lead.category.toLowerCase().includes("pizza") || lead.category.toLowerCase().includes("burger") || lead.category.toLowerCase().includes("fast food");
   const theme = getTheme("restaurant", lead.name);
   const wa = waLink(lead.phone);
   const waNum = waDigits(lead.phone);
-  const R = true; // Dark mode premium look by default
+  const R = true;
 
   const galleryImages =
     lead.uploadedImages && lead.uploadedImages.length > 0
@@ -40,50 +39,22 @@ export function generateLandingPageHTML(
       ? [lead.photoUrl]
       : [];
   const heroImage = galleryImages[0] ?? null;
-  const philosophyImage = galleryImages[1] ?? galleryImages[0] ?? null;
 
-  const menuCarouselHtml = `
+  const menuCarouselHtml = galleryImages.length > 0 ? `
     <div class="mt-10 relative max-w-2xl mx-auto">
-      <div class="overflow-hidden r-card">
+      <h3 class="text-lg font-semibold mb-3 text-center" style="color:var(--primary);">Menu &amp; Gallery Photos</h3>
+      <div class="overflow-hidden r-card border border-white/10">
         <div id="menu-carousel-track" class="flex transition-transform duration-500" style="transform: translateX(0%);">
-          ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-80 object-cover" />`).join("")}
+          ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-96 object-cover" />`).join("")}
         </div>
       </div>
       ${galleryImages.length > 1 ? `
-      <button type="button" onclick="menuCarouselMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">‹</button>
-      <button type="button" onclick="menuCarouselMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">›</button>
+      <button type="button" onclick="menuCarouselMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl shadow-lg" style="background:rgba(0,0,0,0.7);">‹</button>
+      <button type="button" onclick="menuCarouselMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl shadow-lg" style="background:rgba(0,0,0,0.7);">›</button>
       <div class="flex justify-center gap-1.5 mt-3">
-        ${galleryImages.map((_, i) => `<span class="menu-carousel-dot w-1.5 h-1.5 rounded-full" data-i="${i}" style="background:${i === 0 ? "var(--primary)" : "rgba(255,255,255,0.3)"};"></span>`).join("")}
+        ${galleryImages.map((_, i) => `<span class="menu-carousel-dot w-2 h-2 rounded-full" data-i="${i}" style="background:${i === 0 ? "var(--primary)" : "rgba(255,255,255,0.3)"};"></span>`).join("")}
       </div>` : ""}
-    </div>`;
-
-  const activeMenuSections = menuSections.length > 0 ? menuSections : [
-    {
-      category: "Appetizers & Starters",
-      items: [
-        { name: "Crispy Bruschetta", description: "Fresh tomatoes, basil, and garlic on grilled artisan bread", price: "7.50" },
-        { name: "Caesar Salad", description: "Crisp romaine, parmesan cheese, house-made croutons", price: "11.00" },
-        { name: "Soup of the Day", description: "Chef's daily warm comforting specialty soup", price: "6.50" }
-      ]
-    },
-    {
-      category: "Main Courses & Specialties",
-      items: [
-        { name: "Wood-Fired Pizza", description: "San Marzano sauce, fresh mozzarella, and sweet basil", price: "16.50" },
-        { name: "Signature Burger & Fries", description: "Juicy beef patty, cheddar, lettuce, tomato, crispy fries", price: "18.00" },
-        { name: "Grilled Salmon Filet", description: "Fresh Atlantic salmon with seasonal vegetables", price: "21.00" },
-        { name: "Truffle Pasta", description: "Handmade pasta in rich creamy truffle mushroom sauce", price: "19.50" }
-      ]
-    },
-    {
-      category: "Desserts & Beverages",
-      items: [
-        { name: "Artisanal Iced Coffee", description: "Smooth cold-brewed blend with vanilla notes", price: "4.50" },
-        { name: "Fresh Berry Tart", description: "Sweet pastry crust with pastry cream and fresh berries", price: "8.50" },
-        { name: "Warm Chocolate Brownie", description: "Served with vanilla bean ice cream", price: "9.00" }
-      ]
-    }
-  ];
+    </div>` : "";
 
   const cardStyle = "background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);";
   const mutedStyle = "color:#a3a3a3;";
@@ -97,19 +68,6 @@ export function generateLandingPageHTML(
 <title>${escapeHtml(content.seoTitle)}</title>
 <meta name="description" content="${escapeHtml(content.metaDescription)}" />
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        colors: {
-          primary: '${theme.primary}',
-          accent: '${theme.accent}',
-        }
-      }
-    }
-  }
-</script>
 <style>
   :root {
     --primary: ${theme.primary};
@@ -187,15 +145,16 @@ ${wa ? `
   </div>
 </section>
 
-<!-- Menu -->
+<!-- Menu (Empty unless real menu parsed or link exists) -->
 <section id="featured" class="py-20" style="background:#141414;">
   <div class="max-w-6xl mx-auto px-6">
-    <div class="text-center space-y-3 mb-16">
+    <div class="text-center space-y-3 mb-12">
       <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--primary);">Menu &amp; Selection</span>
-      <h2 class="text-4xl font-bold text-white">Our Signature Menu</h2>
+      <h2 class="text-4xl font-bold text-white">Our Menu</h2>
     </div>
-    <div class="space-y-12">
-      ${activeMenuSections.map((section) => `
+    ${menuSections.length > 0 ? `
+    <div class="space-y-12 max-w-4xl mx-auto">
+      ${menuSections.map((section) => `
       <div>
         ${section.category ? `<h3 class="text-xl font-semibold mb-5" style="color:var(--primary);">${escapeHtml(section.category)}</h3>` : ""}
         <div class="grid sm:grid-cols-2 gap-4">
@@ -209,15 +168,18 @@ ${wa ? `
           </div>`).join("")}
         </div>
       </div>`).join("")}
-    </div>
-    <p class="text-xs text-center mt-8" style="${mutedStyle}">Prices range from $3.50 to $21.00. Availability and prices may vary.</p>
-    ${originalMenuPhotoUrl || lead.website ? `<div class="text-center mt-6"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu ↗</a></div>` : ""}
-    ${galleryImages.length > 0 ? menuCarouselHtml : ""}
+    </div>` : `
+    <div class="text-center py-8 text-neutral-400">
+      <p>Explore our menu photos below or visit our official menu link.</p>
+    </div>`}
+    
+    ${originalMenuPhotoUrl || lead.website ? `<div class="text-center mt-8"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 r-card font-medium border" style="border-color:var(--primary); color:var(--primary);">View Full Menu Link ↗</a></div>` : ""}
+    ${menuCarouselHtml}
   </div>
 </section>
 
-<!-- Reservation Form -->
-<section id="reserve" class="py-24 border-t border-white/1id">
+<!-- Reservation Form with Calendar Date Picker -->
+<section id="reserve" class="py-24 border-t border-white/10">
   <div class="max-w-3xl mx-auto px-6">
     <div class="text-center space-y-3 mb-12">
       <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--primary);">Book Your Table</span>
@@ -249,8 +211,8 @@ ${wa ? `
         </div>
       </div>
       <div>
-        <label class="text-sm block mb-1" style="${mutedStyle}">Date (Calendar)</label>
-        <input id="f-date" type="date" class="w-full rounded-md px-3 py-2 text-sm ${inputClass}" />
+        <label class="text-sm block mb-1" style="${mutedStyle}">Date (Click to Open Calendar)</label>
+        <input id="f-date" type="date" required onclick="this.showPicker && this.showPicker()" class="w-full rounded-md px-3 py-2 text-sm ${inputClass} cursor-pointer" />
       </div>
       <div>
         <label class="text-sm block mb-1" style="${mutedStyle}">Special Requests</label>
