@@ -519,21 +519,16 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end gap-3 shrink-0 w-64">
-                      {/* Bigger preview square image next to generation / buttons */}
+                    <div className="flex items-center gap-4 shrink-0">
+                      {/* x3 bigger preview image placed to the left of the generation options/button */}
                       {(images[lead.placeId]?.[0] || lead.photoUrl) && (
-                        <div className="w-full flex items-center gap-2">
-                          <img
-                            src={images[lead.placeId]?.[0] || lead.photoUrl || undefined}
-                            alt={lead.name}
-                            className="w-24 h-24 object-cover rounded-xl border border-slate-300 shadow-sm"
-                          />
-                          <div className="flex-1 text-xs text-slate-500">
-                            <span className="font-semibold text-slate-700 block">Preview</span>
-                            {lead.address}
-                          </div>
-                        </div>
+                        <img
+                          src={images[lead.placeId]?.[0] || lead.photoUrl || undefined}
+                          alt={lead.name}
+                          className="w-36 h-36 object-cover rounded-2xl border-2 border-slate-300 shadow-md shrink-0"
+                        />
                       )}
+                      <div className="flex flex-col items-end gap-2 w-64">
                       <label className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 w-full text-center cursor-pointer hover:bg-slate-50">
                         {images[lead.placeId]?.length
                           ? `${images[lead.placeId].length} photo(s) added`
@@ -645,10 +640,11 @@ export default function Dashboard() {
                       <a
                         href={lead.mapsUrl}
                         target="_blank"
-                        className="text-xs text-slate-400 underline underline-offset-2"
+                        className="text-xs font-medium text-slate-500 underline underline-offset-2 text-center w-full"
                       >
-                        View on Maps
+                        Open in Google Maps ↗
                       </a>
+                      </div>
                     </div>
                   </div>
                 </li>

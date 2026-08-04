@@ -54,10 +54,26 @@ export function generateCoffeeLandingPageHTML(
       .map((_, i) => `<span style="color:${i < count ? "#c9a24b" : "#d6ccbf"};">★</span>`)
       .join("");
 
-  const numberedCategories =
-    menuSections.length > 0
-      ? menuSections
-      : [{ category: content.showcaseItems.length ? "On the Menu" : undefined, items: content.showcaseItems.map((s) => ({ name: s.name, description: s.description, price: undefined as string | undefined })) }];
+  const activeMenuSections = menuSections.length > 0 ? menuSections : [
+    {
+      category: "Espresso & Coffee Drinks",
+      items: [
+        { name: "Signature Double Espresso", description: "Bold, rich flavor with caramel undertones", price: "3.50" },
+        { name: "Classic Cappuccino", description: "Espresso with steamed microfoam and cocoa dust", price: "5.00" },
+        { name: "Caramel Latte", description: "Espresso, steamed milk, and sweet caramel drizzle", price: "6.50" },
+        { name: "Cold Brew Reserve", description: "Steeped 24 hours for exceptional smoothness", price: "5.50" }
+      ]
+    },
+    {
+      category: "Bakery & Fresh Bites",
+      items: [
+        { name: "Buttery Croissant", description: "Flaky and golden-brown, baked fresh daily", price: "4.00" },
+        { name: "Avocado Toast", description: "Smashed avocado, sea salt, and chilli flakes on sourdough", price: "12.00" },
+        { name: "Blueberry Muffin", description: "Packed with juicy blueberries and sweet crumb topping", price: "4.50" },
+        { name: "Breakfast Sandwich", description: "Egg, cheese, and artisan bacon on a warm brioche", price: "8.50" }
+      ]
+    }
+  ];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -176,7 +192,7 @@ ${wa ? `
   <p class="text-center text-[#5a4c3c] max-w-xl mx-auto mb-12">${menuSections.length > 0 ? "Ask about seasonal specials not listed here." : "Ask our team about our full menu in person or by phone."}</p>
   ${originalMenuPhotoUrl || lead.website ? `<div class="text-center -mt-8 mb-10"><a href="${originalMenuPhotoUrl || lead.website}" target="_blank" class="inline-block px-6 py-3 rounded-full font-medium" style="background:#c9a24b; color:#241c15;">${originalMenuPhotoUrl ? "View Original Menu ↗" : "View Full Menu ↗"}</a></div>` : ""}
   <div class="grid sm:grid-cols-2 gap-x-12 gap-y-10">
-    ${numberedCategories.slice(0, 4).map((section, i) => `
+    ${activeMenuSections.slice(0, 4).map((section, i) => `
     <div>
       <p class="text-3xl font-display font-semibold" style="color:#e4d2b5;">${String(i + 1).padStart(2, "0")}</p>
       ${section.category ? `<h3 class="text-lg font-semibold font-display mb-3 -mt-6 ml-10">${escapeHtml(section.category)}</h3>` : `<div class="mb-3"></div>`}
