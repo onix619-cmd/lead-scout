@@ -33,6 +33,8 @@ export function generateCoffeeLandingPageHTML(
   const galleryImages =
     lead.uploadedImages && lead.uploadedImages.length > 0
       ? lead.uploadedImages
+      : lead.photoUrls && lead.photoUrls.length > 0
+      ? lead.photoUrls
       : lead.photoUrl
       ? [lead.photoUrl]
       : [];
