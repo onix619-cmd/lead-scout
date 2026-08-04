@@ -488,7 +488,7 @@ ${philosophyImage ? `
           </div>
           <div>
             <label class="text-sm block mb-1" style="${mutedStyle}">Date</label>
-            <input id="f-date" type="date" class="w-full rounded-md px-3 py-2 text-sm ${inputClass}" />
+            <input id="f-date" type="date" required onclick="this.showPicker && this.showPicker()" class="w-full rounded-md px-3 py-2 text-sm ${inputClass} cursor-pointer" />
           </div>
         </div>
 
