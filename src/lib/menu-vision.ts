@@ -77,6 +77,51 @@ async function callClaude(prompt: string, images: string[], maxTokens = 1500): P
   return text ?? "";
 }
 
+async function classifyGroq(url: string): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("Missing GROQ_API_KEY.");
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: GROQ_VISION_MODEL,
+      messages: [{ role: "user", content: [{ type: "text", text: CLASSIFY_PROMPT }, { type: "image_url", image_url: { url } }] }],
+      temperature: 0,
+      max_tokens: 100,
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq classify error (${res.status}): ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+async function extractGroq(url: string): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("Missing GROQ_API_KEY.");
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: GROQ_VISION_MODEL,
+      messages: [{ role: "user", content: [{ type: "text", text: VISION_PROMPT }, { type: "image_url", image_url: { url } }] }],
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq extract error (${res.status}): ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+async function classifyClaude(url: string): Promise<string> {
+  return callClaude(CLASSIFY_PROMPT, [url], 100);
+}
+
+async function extractClaude(url: string): Promise<string> {
+  return callClaude(VISION_PROMPT, [url]);
+}
+
 function parseJsonLoose(text: string): any {
   const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
   return JSON.parse(cleaned);
@@ -167,19 +212,26 @@ export async function extractMenuFromImages(
 }
 
 // The full "Detect Menu Photos" pipeline: scans a business's real Google
-// Maps photos (no manual upload needed), asks Claude to classify each as
-// menu/not-menu, then extracts structured items from whichever ones are
-// menus. Capped at a handful of photos to keep cost/latency reasonable —
-// checking every photo on a large listing isn't worth it. Returns the
-// merged menu plus the URL of the first photo identified as the menu, for
-// the "View Original Menu" button.
+// Maps photos (no manual upload needed), classifies each as menu/not-menu,
+// then extracts structured items from whichever ones are menus. Capped at
+// a handful of photos to keep cost/latency reasonable — checking every
+// photo on a large listing isn't worth it. Returns the merged menu plus
+// the URL of the first photo identified as the menu, for the "View
+// Original Menu" button. Uses whichever provider is selected — Groq or
+// Claude both support fetching a real Google Photos URL directly, so
+// neither needs a manual download step.
 export async function detectMenuFromGooglePhotos(
-  photoUrls: string[]
+  photoUrls: string[],
+  provider: AiProvider = "claude"
 ): Promise<{ sections: MenuSection[]; sourcePhotoUrl?: string }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const usesGroq = provider === "groq";
+  const apiKey = usesGroq ? process.env.GROQ_API_KEY : process.env.ANTHROPIC_API_KEY;
   if (!apiKey || !photoUrls || photoUrls.length === 0) {
     return { sections: [] };
   }
+
+  const classify = usesGroq ? classifyGroq : classifyClaude;
+  const extract = usesGroq ? extractGroq : extractClaude;
 
   const candidates = photoUrls.slice(0, 6);
   let sourcePhotoUrl: string | undefined;
@@ -187,12 +239,12 @@ export async function detectMenuFromGooglePhotos(
 
   for (const url of candidates) {
     try {
-      const classifyText = await callClaude(CLASSIFY_PROMPT, [url], 100);
+      const classifyText = await classify(url);
       const { isMenu } = parseJsonLoose(classifyText);
       if (!isMenu) continue;
 
       if (!sourcePhotoUrl) sourcePhotoUrl = url;
-      const extractText = await callClaude(VISION_PROMPT, [url]);
+      const extractText = await extract(url);
       const sections = toMenuSections(parseJsonLoose(extractText));
       allSections.push(...sections);
     } catch {
