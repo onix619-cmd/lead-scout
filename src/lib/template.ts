@@ -271,9 +271,9 @@ ${wa ? `
   <div class="max-w-md mx-auto px-6 text-center">
     <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color:var(--primary);">Quick Order</p>
     <h2 class="text-2xl font-semibold mb-4 font-display">Order &amp; Grab</h2>
-    <div class="flex flex-col sm:flex-row gap-2">
-      <input id="grab-order-text" type="text" placeholder="What would you like to order?" class="flex-1 min-w-0 rounded-md px-4 py-3 text-sm ${R ? "bg-black/30 border border-white/15 text-white placeholder-white/40" : "bg-white border border-slate-300 text-slate-900"}" />
-      <button type="button" onclick="sendGrabOrder()" class="btn-primary font-medium px-5 py-3 r-card whitespace-nowrap hover-scale">Send Order ↗</button>
+    <div class="flex flex-col gap-3">
+      <textarea id="grab-order-text" rows="3" placeholder="What would you like to order? (e.g. 2x Burgers, 1x Fries...)" class="w-full rounded-md px-4 py-3 text-sm ${inputClass} resize-y shadow-inner"></textarea>
+      <button type="button" onclick="sendGrabOrder()" class="btn-primary font-medium py-3.5 r-card w-full hover-scale uppercase tracking-wider text-sm">Send Order ↗</button>
     </div>
     <p class="text-xs mt-2" style="${mutedStyle}">Opens WhatsApp with your order typed in — just hit send.</p>
   </div>

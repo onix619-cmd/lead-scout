@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent } from "@/lib/content-writer";
-import { generateLandingPageHTML } from "@/lib/template";
+import { generateLandingPageHTML, TemplateOverride } from "@/lib/template";
 import { deployToVercel } from "@/lib/deploy";
 import { getSupabase } from "@/lib/supabase";
 import { fetchPlaceReviews } from "@/lib/reviews";
@@ -12,11 +12,12 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    const { lead, comment, images, menuText } = payload as {
+    const { lead, comment, images, menuText, templateOverride } = payload as {
       lead: Lead;
       comment?: string;
       images?: string[];
       menuText?: string;
+      templateOverride?: TemplateOverride;
     };
 
     if (!lead?.name || !lead?.placeId) {
@@ -60,7 +61,14 @@ export async function POST(req: NextRequest) {
     };
 
     const content = await generateContent(leadWithImages, comment);
-    const html = generateLandingPageHTML(leadWithImages, content, menuSections);
+    const html = generateLandingPageHTML(
+      leadWithImages,
+      content,
+      menuSections,
+      "A",
+      undefined,
+      templateOverride
+    );
     const url = await deployToVercel(leadWithImages.name, leadWithImages.placeId, html);
 
     const supabase = getSupabase();
