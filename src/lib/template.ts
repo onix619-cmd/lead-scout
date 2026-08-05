@@ -2,7 +2,6 @@ import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
-import { generateCreativeRestaurantHTML } from "./template-creative";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -27,7 +26,7 @@ function schemaTypeFor(themeKey: string) {
   return "LocalBusiness";
 }
 
-export type TemplateOverride = "restaurant-1" | "restaurant-2" | "restaurant-3" | "coffee" | undefined;
+export type TemplateOverride = "restaurant-1" | "restaurant-2" | "coffee" | undefined;
 
 export function generateLandingPageHTML(
   lead: Lead,
@@ -48,8 +47,6 @@ export function generateLandingPageHTML(
   } else if (templateOverride === "restaurant-2") {
     themeKey = "restaurant";
     effectiveVariant = "B";
-  } else if (templateOverride === "restaurant-3") {
-    return generateCreativeRestaurantHTML(lead, content, menuSections, originalMenuPhotoUrl);
   }
 
   if (themeKey === "coffee") {
