@@ -59,13 +59,49 @@ const PROVINCES = [
   "Yukon",
 ];
 
-const priorityStyle: Record<Lead["priority"], string> = {
-  high: "bg-red-50 border-red-300 text-red-700",
-  medium: "bg-[#fffbea] border-[#fdc700] text-[#8a6d00]",
-  low: "bg-slate-50 border-slate-300 text-slate-500",
-};
+function getTheme(dark: boolean) {
+  return {
+    page: dark ? "bg-[#0b1220] text-slate-100" : "bg-[#eef4fb] text-slate-900",
+    heading: dark ? "text-white" : "text-[#0f2a4a]",
+    subtext: dark ? "text-slate-400" : "text-slate-500",
+    card: dark ? "bg-[#111827] border-slate-700" : "bg-white border-blue-100",
+    label: dark ? "text-slate-300" : "text-slate-600",
+    input: dark
+      ? "bg-[#0b1220] border-slate-600 text-slate-100 placeholder-slate-500 focus:border-blue-400"
+      : "bg-white border-sky-200 text-slate-900 placeholder-sky-400 focus:border-sky-400",
+    dropdown: dark ? "bg-[#111827] border-slate-600" : "bg-white border-sky-200",
+    dropdownItem: dark ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-sky-50",
+    dropdownMuted: dark ? "text-slate-500" : "text-slate-400",
+    checkboxText: dark ? "text-slate-300" : "text-slate-700",
+    helperText: dark ? "text-slate-500" : "text-slate-400",
+    resultsHeaderBorder: dark ? "border-slate-700" : "border-blue-100",
+    resultsHeaderText: dark ? "text-slate-400" : "text-slate-500",
+    divide: dark ? "divide-slate-800" : "divide-blue-50",
+    leadName: dark ? "text-white" : "text-slate-900",
+    leadAddress: dark ? "text-slate-400" : "text-slate-500",
+    phoneLink: dark ? "text-slate-300" : "text-slate-600",
+    scoreText: dark ? "text-blue-400" : "text-blue-600",
+    showDetails: dark ? "text-slate-500" : "text-slate-400",
+    expandedBox: dark ? "bg-[#0b1220] border-slate-700" : "bg-slate-50 border-slate-200",
+    checkPassed: dark ? "text-slate-300" : "text-slate-700",
+    checkFailed: dark ? "text-slate-600" : "text-slate-400",
+    improveHeading: dark ? "text-blue-400" : "text-blue-700",
+    improveList: dark ? "text-slate-400" : "text-slate-600",
+    thumbBorder: dark ? "border-slate-700" : "border-slate-200",
+    secondaryBtn: dark
+      ? "text-slate-300 border-slate-600 hover:bg-slate-800"
+      : "text-slate-600 border-slate-300 hover:bg-slate-50",
+    primaryOutlineBtn: dark
+      ? "text-blue-400 border-blue-500 hover:bg-blue-950"
+      : "text-blue-600 border-blue-300 hover:bg-blue-50",
+    mapsLink: dark ? "text-slate-500" : "text-slate-400",
+  };
+}
 
 export default function Dashboard() {
+  const [darkMode, setDarkMode] = useState(false);
+  const t = getTheme(darkMode);
+
   const [category, setCategory] = useState("Restaurants");
   const [showCategoryList, setShowCategoryList] = useState(false);
   const [address, setAddress] = useState("");
@@ -75,7 +111,7 @@ export default function Dashboard() {
   const [radiusKm, setRadiusKm] = useState(10);
   const [minRating, setMinRating] = useState(4);
   const [includeNoWebsite, setIncludeNoWebsite] = useState(true);
-  const [includeOutdated, setIncludeOutdated] = useState(true);
+  const [includeOutdated, setIncludeOutdated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -206,25 +242,46 @@ export default function Dashboard() {
     }
   }
 
+  const priorityStyle: Record<Lead["priority"], string> = darkMode
+    ? {
+        high: "bg-red-950 border-red-700 text-red-300",
+        medium: "bg-[#2a2308] border-[#fdc700] text-[#fdc700]",
+        low: "bg-slate-800 border-slate-600 text-slate-400",
+      }
+    : {
+        high: "bg-red-50 border-red-300 text-red-700",
+        medium: "bg-[#fffbea] border-[#fdc700] text-[#8a6d00]",
+        low: "bg-slate-50 border-slate-300 text-slate-500",
+      };
+
   return (
-    <main className="min-h-screen bg-[#eef4fb] text-slate-900">
+    <main className={`min-h-screen ${t.page}`}>
       <div className="mx-auto max-w-5xl px-6 py-10">
-        <header className="mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-[#0f2a4a] uppercase">
-            Business Website Generator
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Find local businesses near an address and see which ones need a better website.
-          </p>
+        <header className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className={`text-3xl font-extrabold tracking-tight uppercase ${t.heading}`}>
+              Business Website Generator
+            </h1>
+            <p className={`mt-1 ${t.subtext}`}>
+              Find local businesses near an address and see which ones need a better website.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDarkMode((prev) => !prev)}
+            className={`shrink-0 text-xs font-medium px-3 py-2 rounded-lg border ${t.secondaryBtn}`}
+          >
+            {darkMode ? "☀️ Light mode" : "🌙 Dark mode"}
+          </button>
         </header>
 
         <form
           onSubmit={handleSearch}
-          className="bg-white border border-blue-100 rounded-xl shadow-sm p-6 mb-8"
+          className={`border rounded-xl shadow-sm p-6 mb-8 ${t.card}`}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="relative">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
+              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Category
               </label>
               <div className="flex">
@@ -238,7 +295,7 @@ export default function Dashboard() {
                   onBlur={() => setTimeout(() => setShowCategoryList(false), 150)}
                   placeholder="e.g. Restaurants, Plumbers..."
                   autoComplete="off"
-                  className="w-full bg-white border border-sky-200 rounded-l-lg px-3 py-2 text-sm text-slate-900 placeholder-sky-400 focus:outline-none focus:border-sky-400"
+                  className={`w-full border rounded-l-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
                 />
                 {category && (
                   <button
@@ -247,7 +304,7 @@ export default function Dashboard() {
                       setCategory("");
                       setShowCategoryList(true);
                     }}
-                    className="border border-l-0 border-sky-200 px-2 text-sky-500 text-sm"
+                    className={`border border-l-0 px-2 text-sm ${t.input}`}
                     title="Clear"
                   >
                     ✕
@@ -256,14 +313,14 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onMouseDown={() => setShowCategoryList((prev) => !prev)}
-                  className="border border-l-0 border-sky-200 rounded-r-lg px-3 text-sky-500 text-xs"
+                  className={`border border-l-0 rounded-r-lg px-3 text-xs ${t.input}`}
                   title="Show all categories"
                 >
                   ▼
                 </button>
               </div>
               {showCategoryList && (
-                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-sky-200 rounded-lg shadow-md max-h-56 overflow-y-auto">
+                <ul className={`absolute z-10 left-0 right-0 mt-1 border rounded-lg shadow-md max-h-56 overflow-y-auto ${t.dropdown}`}>
                   {(category.trim()
                     ? CATEGORIES.filter((c) => c.toLowerCase().includes(category.toLowerCase()))
                     : CATEGORIES
@@ -275,7 +332,7 @@ export default function Dashboard() {
                           setCategory(c);
                           setShowCategoryList(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
+                        className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
                       >
                         {c}
                       </button>
@@ -283,7 +340,7 @@ export default function Dashboard() {
                   ))}
                   {category.trim() &&
                     !CATEGORIES.some((c) => c.toLowerCase().includes(category.toLowerCase())) && (
-                      <li className="px-3 py-2 text-xs text-slate-400">
+                      <li className={`px-3 py-2 text-xs ${t.dropdownMuted}`}>
                         No matches — you can still search "{category}" as a custom category.
                       </li>
                     )}
@@ -292,7 +349,7 @@ export default function Dashboard() {
             </div>
 
             <div className="relative">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
+              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Address
               </label>
               <input
@@ -306,10 +363,10 @@ export default function Dashboard() {
                 placeholder="123 Main St, Montreal, QC"
                 required
                 autoComplete="off"
-                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-sky-400 focus:outline-none focus:border-sky-400"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
               />
               {showSuggestions && addressSuggestions.length > 0 && (
-                <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-sky-200 rounded-lg shadow-md max-h-56 overflow-y-auto">
+                <ul className={`absolute z-10 left-0 right-0 mt-1 border rounded-lg shadow-md max-h-56 overflow-y-auto ${t.dropdown}`}>
                   {addressSuggestions.map((s) => (
                     <li key={s.placeId}>
                       <button
@@ -319,7 +376,7 @@ export default function Dashboard() {
                           setAddressSuggestions([]);
                           setShowSuggestions(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
+                        className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
                       >
                         {s.text}
                       </button>
@@ -332,13 +389,13 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
+              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Province
               </label>
               <select
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
               >
                 {PROVINCES.map((p) => (
                   <option key={p} value={p}>
@@ -348,13 +405,13 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
+              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Search radius
               </label>
               <select
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(Number(e.target.value))}
-                className="w-full bg-white border border-sky-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-sky-400"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
               >
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>
@@ -364,7 +421,7 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wide block mb-1">
+              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Minimum rating: {minRating}★
               </label>
               <input
@@ -380,7 +437,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-wrap gap-6 mt-5">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className={`flex items-center gap-2 text-sm ${t.checkboxText}`}>
               <input
                 type="checkbox"
                 checked={includeNoWebsite}
@@ -389,7 +446,7 @@ export default function Dashboard() {
               />
               Businesses without websites
             </label>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className={`flex items-center gap-2 text-sm ${t.checkboxText}`}>
               <input
                 type="checkbox"
                 checked={includeOutdated}
@@ -407,29 +464,29 @@ export default function Dashboard() {
           >
             {loading ? "Searching…" : "Search"}
           </button>
-          <p className="text-xs text-slate-400 mt-2">
-            Fetches up to 100 results within the chosen radius (using a few overlapping sub-searches), sorted by priority.
+          <p className={`text-xs mt-2 ${t.helperText}`}>
+            By default this searches businesses without a website only — check "outdated websites" above to include those too. Fetches up to 100 results within the chosen radius (using a few overlapping sub-searches), sorted by priority.
           </p>
         </form>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+          <div className={`text-sm rounded-lg px-4 py-3 mb-6 ${darkMode ? "bg-red-950 border border-red-800 text-red-300" : "bg-red-50 border border-red-200 text-red-700"}`}>
             {error}
           </div>
         )}
 
         {leads.length > 0 && (
-          <div className="bg-white border border-blue-100 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-blue-100 text-sm text-slate-500 uppercase tracking-wide">
+          <div className={`border rounded-xl shadow-sm overflow-hidden ${t.card}`}>
+            <div className={`px-6 py-4 border-b text-sm uppercase tracking-wide ${t.resultsHeaderBorder} ${t.resultsHeaderText}`}>
               {leads.length} result{leads.length !== 1 ? "s" : ""}
             </div>
-            <ul className="divide-y divide-blue-50">
+            <ul className={`divide-y ${t.divide}`}>
               {leads.map((lead) => (
                 <li key={lead.placeId} className="px-6 py-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-slate-900">{lead.name}</span>
+                        <span className={`font-bold ${t.leadName}`}>{lead.name}</span>
                         <span
                           className={`text-xs border rounded-full px-2 py-0.5 uppercase tracking-wide ${priorityStyle[lead.priority]}`}
                         >
@@ -439,17 +496,17 @@ export default function Dashboard() {
                           <span className="text-xs flex items-center gap-0.5">
                             <span className="text-yellow-400">
                               {"★".repeat(Math.round(lead.rating))}
-                              <span className="text-slate-200">
+                              <span className={darkMode ? "text-slate-700" : "text-slate-200"}>
                                 {"★".repeat(5 - Math.round(lead.rating))}
                               </span>
                             </span>
-                            <span className="text-slate-500 ml-1">
+                            <span className={`ml-1 ${t.leadAddress}`}>
                               {lead.rating} ({lead.reviewCount})
                             </span>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5 truncate">
+                      <p className={`text-sm mt-0.5 truncate ${t.leadAddress}`}>
                         {lead.address}
                       </p>
                       <div className="mt-1.5 flex items-center gap-3 text-xs flex-wrap">
@@ -463,7 +520,7 @@ export default function Dashboard() {
                           </a>
                         )}
                         {lead.phone && (
-                          <a href={`tel:${lead.phone}`} className="text-slate-600 underline underline-offset-2">
+                          <a href={`tel:${lead.phone}`} className={`underline underline-offset-2 ${t.phoneLink}`}>
                             {lead.phone}
                           </a>
                         )}
@@ -471,7 +528,7 @@ export default function Dashboard() {
                           <a
                             href={lead.website}
                             target="_blank"
-                            className="text-blue-600 underline underline-offset-2"
+                            className={`underline underline-offset-2 ${darkMode ? "text-blue-400" : "text-blue-600"}`}
                           >
                             Visit site ↗
                           </a>
@@ -480,35 +537,35 @@ export default function Dashboard() {
                       <div className="mt-2 flex items-center gap-3 text-sm">
                         {lead.websiteScore.hasWebsite ? (
                           <>
-                            <span className="font-medium text-blue-600">
+                            <span className={`font-medium ${t.scoreText}`}>
                               Website score: {lead.websiteScore.score}/100
                             </span>
                             <button
                               onClick={() =>
                                 setExpanded(expanded === lead.placeId ? null : lead.placeId)
                               }
-                              className="text-slate-400 underline underline-offset-2"
+                              className={`underline underline-offset-2 ${t.showDetails}`}
                             >
                               {expanded === lead.placeId ? "Hide details" : "Show details"}
                             </button>
                           </>
                         ) : (
-                          <span className="text-red-600 font-bold">No website</span>
+                          <span className={darkMode ? "text-red-400 font-bold" : "text-red-600 font-bold"}>No website</span>
                         )}
                       </div>
                       {expanded === lead.placeId && lead.websiteScore.hasWebsite && (
-                        <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm">
+                        <div className={`mt-3 border rounded-lg p-3 text-sm ${t.expandedBox}`}>
                           <ul className="grid grid-cols-2 gap-1 mb-2">
                             {lead.websiteScore.checks.map((c) => (
-                              <li key={c.label} className={c.passed ? "text-slate-700" : "text-slate-400"}>
+                              <li key={c.label} className={c.passed ? t.checkPassed : t.checkFailed}>
                                 {c.passed ? "✓" : "✕"} {c.label}
                               </li>
                             ))}
                           </ul>
                           {lead.websiteScore.suggestions.length > 0 && (
                             <>
-                              <p className="font-bold text-blue-700 mt-2 mb-1">Needs improvement:</p>
-                              <ul className="list-disc list-inside text-slate-600">
+                              <p className={`font-bold mt-2 mb-1 ${t.improveHeading}`}>Needs improvement:</p>
+                              <ul className={`list-disc list-inside ${t.improveList}`}>
                                 {lead.websiteScore.suggestions.map((s) => (
                                   <li key={s}>{s}</li>
                                 ))}
@@ -519,17 +576,25 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      {/* x3 bigger preview image placed to the left of the generation options/button */}
-                      {(images[lead.placeId]?.[0] || lead.photoUrl) && (
-                        <img
-                          src={images[lead.placeId]?.[0] || lead.photoUrl || undefined}
-                          alt={lead.name}
-                          className="w-36 h-36 object-cover rounded-2xl border-2 border-slate-300 shadow-md shrink-0"
-                        />
+                    <div className="flex flex-col items-end gap-2 shrink-0 w-52">
+                      {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
+                        .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
+                        .slice(0, 2).length > 0 && (
+                        <div className="flex gap-1.5 w-full">
+                          {[images[lead.placeId]?.[0] || lead.photoUrl, images[lead.placeId]?.[1] || lead.photoUrl]
+                            .filter((src, i, arr): src is string => !!src && arr.indexOf(src) === i)
+                            .slice(0, 2)
+                            .map((src, i) => (
+                              <img
+                                key={i}
+                                src={src}
+                                alt={lead.name}
+                                className={`w-1/2 h-28 object-cover rounded-lg border ${t.thumbBorder}`}
+                              />
+                            ))}
+                        </div>
                       )}
-                      <div className="flex flex-col items-end gap-2 w-64">
-                      <label className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 w-full text-center cursor-pointer hover:bg-slate-50">
+                      <label className={`text-[11px] border rounded-lg px-3 py-1.5 w-full text-center cursor-pointer ${t.secondaryBtn}`}>
                         {images[lead.placeId]?.length
                           ? `${images[lead.placeId].length} photo(s) added`
                           : "Upload photos"}
@@ -542,7 +607,7 @@ export default function Dashboard() {
                         />
                       </label>
                       <details className="w-full">
-                        <summary className="text-[11px] text-slate-600 border border-slate-300 rounded-lg px-3 py-1.5 text-center cursor-pointer hover:bg-slate-50 list-none">
+                        <summary className={`text-[11px] border rounded-lg px-3 py-1.5 text-center cursor-pointer list-none ${t.secondaryBtn}`}>
                           {menuTexts[lead.placeId]?.trim() ? "Menu added ✓" : "Paste real menu (optional)"}
                         </summary>
                         <textarea
@@ -551,21 +616,21 @@ export default function Dashboard() {
                             setMenuTexts((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
                           }
                           placeholder={"## Starters\nCaesar Salad - $12\nSoup of the Day - $8\n\n## Mains\nGrilled Salmon - $24"}
-                          rows={10}
-                          className="w-full mt-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 placeholder-slate-400 focus:outline-none focus:border-sky-400"
+                          rows={5}
+                          className={`w-full mt-1.5 border rounded-lg text-[11px] px-2 py-1.5 focus:outline-none ${t.input}`}
                         />
-                        <p className="text-[10px] text-slate-400 mt-1">
+                        <p className={`text-[10px] mt-1 ${t.helperText}`}>
                           One item per line: "Name - $Price". Use "## Category" for section headers.
                         </p>
                       </details>
                       <div className="w-full">
-                        <label className="text-[10px] text-slate-500 block mb-1">Website template</label>
+                        <label className={`text-[10px] block mb-1 ${t.helperText}`}>Website template</label>
                         <select
                           value={templateOverrides[lead.placeId] ?? ""}
                           onChange={(e) =>
                             setTemplateOverrides((prev) => ({ ...prev, [lead.placeId]: e.target.value }))
                           }
-                          className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 focus:outline-none focus:border-sky-400"
+                          className={`w-full border rounded-lg text-[11px] px-2 py-1.5 focus:outline-none ${t.input}`}
                         >
                           <option value="">Auto (by category)</option>
                           <option value="restaurant-1">Restaurant — Style 1</option>
@@ -574,13 +639,13 @@ export default function Dashboard() {
                         </select>
                       </div>
                       <div className="w-full">
-                        <label className="text-[10px] text-slate-500 block mb-1">AI provider</label>
+                        <label className={`text-[10px] block mb-1 ${t.helperText}`}>AI provider</label>
                         <select
                           value={providers[lead.placeId] ?? "groq"}
                           onChange={(e) =>
                             setProviders((prev) => ({ ...prev, [lead.placeId]: e.target.value as "groq" | "gemini" }))
                           }
-                          className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 focus:outline-none focus:border-sky-400"
+                          className={`w-full border rounded-lg text-[11px] px-2 py-1.5 focus:outline-none ${t.input}`}
                         >
                           <option value="groq">Groq</option>
                           <option value="gemini">Gemini</option>
@@ -598,7 +663,7 @@ export default function Dashboard() {
                         <button
                           onClick={() => handleGenerate(lead)}
                           disabled={generating.has(lead.placeId)}
-                          className="text-xs font-bold text-blue-600 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-50 disabled:opacity-50 whitespace-nowrap w-full uppercase"
+                          className={`text-xs font-bold border rounded-lg px-3 py-1.5 disabled:opacity-50 whitespace-nowrap w-full uppercase ${t.primaryOutlineBtn}`}
                         >
                           {generating.has(lead.placeId)
                             ? "Generating…"
@@ -616,35 +681,34 @@ export default function Dashboard() {
                             }
                             placeholder="e.g. darker colors, add brunch mention..."
                             rows={2}
-                            className="w-full bg-white border border-slate-300 rounded-lg text-slate-900 text-[11px] px-2 py-1.5 placeholder-slate-400 focus:outline-none focus:border-sky-400"
+                            className={`w-full border rounded-lg text-[11px] px-2 py-1.5 focus:outline-none ${t.input}`}
                           />
                           <button
                             onClick={() => handleGenerate(lead, true)}
                             disabled={generating.has(lead.placeId) || !comments[lead.placeId]?.trim()}
-                            className="mt-1 text-[11px] font-bold text-blue-600 border border-blue-300 rounded-lg px-3 py-1 hover:bg-blue-50 disabled:opacity-40 whitespace-nowrap w-full uppercase"
+                            className={`mt-1 text-[11px] font-bold border rounded-lg px-3 py-1 disabled:opacity-40 whitespace-nowrap w-full uppercase ${t.primaryOutlineBtn}`}
                           >
                             {generating.has(lead.placeId) ? "Regenerating…" : "Regenerate with feedback"}
                           </button>
                         </div>
                       )}
                       {genErrors[lead.placeId] && (
-                        <p className="text-xs text-red-600 text-right">{genErrors[lead.placeId]}</p>
+                        <p className={`text-xs text-right ${darkMode ? "text-red-400" : "text-red-600"}`}>{genErrors[lead.placeId]}</p>
                       )}
                       <button
                         onClick={() => handleSave(lead)}
                         disabled={savedIds.has(lead.placeId)}
-                        className="text-xs font-medium border border-slate-300 text-slate-600 rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap w-full"
+                        className={`text-xs font-medium border rounded-lg px-3 py-1.5 disabled:opacity-50 whitespace-nowrap w-full ${t.secondaryBtn}`}
                       >
                         {savedIds.has(lead.placeId) ? "Saved ✓" : "Save to CRM"}
                       </button>
                       <a
                         href={lead.mapsUrl}
                         target="_blank"
-                        className="text-xs font-medium text-slate-500 underline underline-offset-2 text-center w-full"
+                        className={`text-xs underline underline-offset-2 ${t.mapsLink}`}
                       >
-                        Open in Google Maps ↗
+                        View on Maps
                       </a>
-                      </div>
                     </div>
                   </div>
                 </li>
