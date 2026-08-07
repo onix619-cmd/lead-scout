@@ -115,6 +115,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [restaurantAddress, setRestaurantAddress] = useState("");
+  const [restaurantAddressSuggestions, setRestaurantAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
+  const [showRestaurantSuggestions, setShowRestaurantSuggestions] = useState(false);
+  const [findingByAddress, setFindingByAddress] = useState(false);
+  const [findByAddressError, setFindByAddressError] = useState<string | null>(null);
+  const restaurantDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<string | null>(null);
   const [generating, setGenerating] = useState<Set<string>>(new Set());
@@ -150,6 +156,56 @@ export default function Dashboard() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [address]);
+
+  useEffect(() => {
+    if (restaurantDebounceRef.current) clearTimeout(restaurantDebounceRef.current);
+    if (restaurantAddress.trim().length < 3) {
+      setRestaurantAddressSuggestions([]);
+      return;
+    }
+    restaurantDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/autocomplete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: restaurantAddress }),
+        });
+        const data = await res.json();
+        setRestaurantAddressSuggestions(data.suggestions ?? []);
+      } catch {
+        setRestaurantAddressSuggestions([]);
+      }
+    }, 300);
+    return () => {
+      if (restaurantDebounceRef.current) clearTimeout(restaurantDebounceRef.current);
+    };
+  }, [restaurantAddress]);
+
+  async function handleFindByAddress(e: React.FormEvent) {
+    e.preventDefault();
+    setFindingByAddress(true);
+    setFindByAddressError(null);
+    try {
+      const res = await fetch("/api/find-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: restaurantAddress }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't find that business");
+      setLeads((prev) => {
+        const existingIds = new Set(prev.map((l) => l.placeId));
+        const newOnes = (data.leads as Lead[]).filter((l) => !existingIds.has(l.placeId));
+        return [...newOnes, ...prev];
+      });
+      setRestaurantAddress("");
+      setShowRestaurantSuggestions(false);
+    } catch (err: any) {
+      setFindByAddressError(err.message);
+    } finally {
+      setFindingByAddress(false);
+    }
+  }
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -467,6 +523,65 @@ export default function Dashboard() {
           <p className={`text-xs mt-2 ${t.helperText}`}>
             By default this searches businesses without a website only — check "outdated websites" above to include those too. Fetches up to 100 results within the chosen radius (using a few overlapping sub-searches), sorted by priority.
           </p>
+        </form>
+
+        <form
+          onSubmit={handleFindByAddress}
+          className={`border rounded-xl shadow-sm p-6 mb-8 ${t.card}`}
+        >
+          <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
+            Restaurant Address
+          </label>
+          <p className={`text-xs mb-3 ${t.helperText}`}>
+            Already know the specific business you want? Type its exact address (business name +
+            address works best) to look it up directly, instead of running a broader search.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                value={restaurantAddress}
+                onChange={(e) => {
+                  setRestaurantAddress(e.target.value);
+                  setShowRestaurantSuggestions(true);
+                }}
+                onFocus={() => setShowRestaurantSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowRestaurantSuggestions(false), 150)}
+                placeholder="e.g. Joe's Pizza, 142 Rue Saint-Paul, Montreal, QC"
+                required
+                autoComplete="off"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
+              />
+              {showRestaurantSuggestions && restaurantAddressSuggestions.length > 0 && (
+                <ul className={`absolute z-10 left-0 right-0 mt-1 border rounded-lg shadow-md max-h-56 overflow-y-auto ${t.dropdown}`}>
+                  {restaurantAddressSuggestions.map((s) => (
+                    <li key={s.placeId}>
+                      <button
+                        type="button"
+                        onMouseDown={() => {
+                          setRestaurantAddress(s.text);
+                          setRestaurantAddressSuggestions([]);
+                          setShowRestaurantSuggestions(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
+                      >
+                        {s.text}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={findingByAddress}
+              className="bg-green-600 text-white text-sm font-bold uppercase tracking-wide px-6 py-2.5 rounded-lg hover:bg-green-500 disabled:opacity-50 whitespace-nowrap"
+            >
+              {findingByAddress ? "Finding…" : "Find Business"}
+            </button>
+          </div>
+          {findByAddressError && (
+            <p className={`text-xs mt-2 ${darkMode ? "text-red-400" : "text-red-600"}`}>{findByAddressError}</p>
+          )}
         </form>
 
         {error && (
