@@ -3,43 +3,54 @@
 import { useEffect, useRef, useState } from "react";
 import { Lead } from "@/lib/types";
 
-const CATEGORIES = [
-  "Restaurants",
-  "Coffee shops",
-  "Pizza",
-  "Bakeries",
-  "Bars",
-  "Fast food",
-  "Interior designers",
-  "Hair salons",
-  "Nail salons",
-  "Barbershops",
-  "Spas",
-  "Gyms",
-  "Yoga studios",
-  "Dentists",
-  "Chiropractors",
-  "Veterinarians",
-  "Auto repair shops",
-  "Car dealerships",
-  "Real estate agents",
-  "Lawyers",
-  "Accountants",
-  "Plumbers",
-  "Electricians",
-  "HVAC contractors",
-  "Roofers",
-  "Landscapers",
-  "Photographers",
-  "Florists",
-  "Pet groomers",
-  "Daycares",
-  "Dry cleaners",
-  "Tattoo shops",
-  "Jewelry stores",
-  "Furniture stores",
-  "Bookstores",
+const CATEGORY_GROUPS: { group: string; items: string[] }[] = [
+  {
+    group: "Food Service",
+    items: ["Restaurants", "Pizza", "Fast food"],
+  },
+  {
+    group: "Coffee & Bars",
+    items: ["Coffee shops", "Bars"],
+  },
+  {
+    group: "Other",
+    items: [
+      "Bakeries",
+      "Interior designers",
+      "Hair salons",
+      "Nail salons",
+      "Barbershops",
+      "Spas",
+      "Gyms",
+      "Yoga studios",
+      "Dentists",
+      "Chiropractors",
+      "Veterinarians",
+      "Auto repair shops",
+      "Car dealerships",
+      "Real estate agents",
+      "Lawyers",
+      "Accountants",
+      "Plumbers",
+      "Electricians",
+      "HVAC contractors",
+      "Roofers",
+      "Landscapers",
+      "Photographers",
+      "Florists",
+      "Pet groomers",
+      "Daycares",
+      "Dry cleaners",
+      "Tattoo shops",
+      "Jewelry stores",
+      "Furniture stores",
+      "Bookstores",
+    ],
+  },
 ];
+
+// Flat list kept for filtering/matching logic elsewhere in this file.
+const CATEGORIES = CATEGORY_GROUPS.flatMap((g) => g.items);
 
 const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
 
@@ -377,23 +388,44 @@ export default function Dashboard() {
               </div>
               {showCategoryList && (
                 <ul className={`absolute z-10 left-0 right-0 mt-1 border rounded-lg shadow-md max-h-56 overflow-y-auto ${t.dropdown}`}>
-                  {(category.trim()
-                    ? CATEGORIES.filter((c) => c.toLowerCase().includes(category.toLowerCase()))
-                    : CATEGORIES
-                  ).map((c) => (
-                    <li key={c}>
-                      <button
-                        type="button"
-                        onMouseDown={() => {
-                          setCategory(c);
-                          setShowCategoryList(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
-                      >
-                        {c}
-                      </button>
-                    </li>
-                  ))}
+                  {category.trim()
+                    ? CATEGORIES.filter((c) => c.toLowerCase().includes(category.toLowerCase())).map((c) => (
+                        <li key={c}>
+                          <button
+                            type="button"
+                            onMouseDown={() => {
+                              setCategory(c);
+                              setShowCategoryList(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
+                          >
+                            {c}
+                          </button>
+                        </li>
+                      ))
+                    : CATEGORY_GROUPS.map((g) => (
+                        <li key={g.group}>
+                          <div className={`px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wide ${t.dropdownMuted}`}>
+                            {g.group}
+                          </div>
+                          <ul>
+                            {g.items.map((c) => (
+                              <li key={c}>
+                                <button
+                                  type="button"
+                                  onMouseDown={() => {
+                                    setCategory(c);
+                                    setShowCategoryList(false);
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
+                                >
+                                  {c}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      ))}
                   {category.trim() &&
                     !CATEGORIES.some((c) => c.toLowerCase().includes(category.toLowerCase())) && (
                       <li className={`px-3 py-2 text-xs ${t.dropdownMuted}`}>
