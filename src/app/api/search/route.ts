@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchBusinessesWide } from "@/lib/places";
 import { geocodeAddress } from "@/lib/geocode";
 import { analyzeWebsite, priorityFromScore } from "@/lib/analyzer";
-import { Lead } from "@/lib/types";
+import { Business, Lead } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       category,
+      categories,
       address,
       radiusKm = 10,
       province,
@@ -20,7 +21,12 @@ export async function POST(req: NextRequest) {
       maxResults = 100,
     } = body;
 
-    if (!category) {
+    // Either a single category ("Restaurants") or a combined-search group
+    // (["Restaurants", "Pizza", "Fast food"]) must be provided.
+    const queries: string[] =
+      Array.isArray(categories) && categories.length > 0 ? categories : category ? [category] : [];
+
+    if (queries.length === 0) {
       return NextResponse.json({ error: "category is required" }, { status: 400 });
     }
     if (!address) {
@@ -32,12 +38,32 @@ export async function POST(req: NextRequest) {
     // still the address + radius.
     const fullAddress = province ? `${address}, ${province}, Canada` : address;
     const center = await geocodeAddress(fullAddress);
-    const businesses = await searchBusinessesWide({
-      query: category,
-      minRating,
-      maxResults,
-      locationBias: { center, radiusMeters: radiusKm * 1000 },
-    });
+
+    // For a combined-search group, run each category's search in parallel
+    // against the same area and merge unique businesses by place ID. Each
+    // query still gets up to `maxResults`, so the group as a whole can
+    // return more than a single-category search would.
+    const batches = await Promise.all(
+      queries.map((q) =>
+        searchBusinessesWide({
+          query: q,
+          minRating,
+          maxResults,
+          locationBias: { center, radiusMeters: radiusKm * 1000 },
+        })
+      )
+    );
+
+    const seen = new Set<string>();
+    const businesses: Business[] = [];
+    for (const batch of batches) {
+      for (const b of batch) {
+        if (!seen.has(b.placeId)) {
+          seen.add(b.placeId);
+          businesses.push(b);
+        }
+      }
+    }
 
     const leads: Lead[] = await Promise.all(
       businesses.map(async (b) => {

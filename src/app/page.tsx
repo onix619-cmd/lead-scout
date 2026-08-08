@@ -3,26 +3,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Lead } from "@/lib/types";
 
-const CATEGORY_GROUPS: { group: string; items: string[] }[] = [
+const CATEGORY_GROUPS: { group: string; emoji: string; items: string[] }[] = [
   {
     group: "Food Service",
+    emoji: "🍽️",
     items: ["Restaurants", "Pizza", "Fast food"],
   },
   {
     group: "Coffee & Bars",
+    emoji: "☕",
     items: ["Coffee shops", "Bars"],
   },
   {
+    group: "Health Care",
+    emoji: "💆",
+    items: ["Spas", "Gyms", "Yoga studios"],
+  },
+  {
+    group: "Beauty Care",
+    emoji: "💅",
+    items: ["Nail salons", "Hair salons", "Barbershops"],
+  },
+  {
     group: "Other",
+    emoji: "📌",
     items: [
       "Bakeries",
       "Interior designers",
-      "Hair salons",
-      "Nail salons",
-      "Barbershops",
-      "Spas",
-      "Gyms",
-      "Yoga studios",
       "Dentists",
       "Chiropractors",
       "Veterinarians",
@@ -48,6 +55,12 @@ const CATEGORY_GROUPS: { group: string; items: string[] }[] = [
     ],
   },
 ];
+
+// The four groups people can search as a single combined query — clicking
+// one of these runs the search across every category listed under it and
+// merges the results (deduped by place). "Other" is excluded since it's a
+// grab-bag, not a real combined-search group.
+const QUICK_GROUPS = CATEGORY_GROUPS.filter((g) => g.group !== "Other");
 
 // Flat list kept for filtering/matching logic elsewhere in this file.
 const CATEGORIES = CATEGORY_GROUPS.flatMap((g) => g.items);
@@ -114,6 +127,10 @@ export default function Dashboard() {
   const t = getTheme(darkMode);
 
   const [category, setCategory] = useState("Restaurants");
+  // When set, a combined-search group is active (e.g. "Food Service" ->
+  // Restaurants + Pizza + Fast food searched together). Cleared whenever the
+  // person types a custom category or picks a single one from the dropdown.
+  const [categoryGroup, setCategoryGroup] = useState<{ group: string; items: string[] } | null>(null);
   const [showCategoryList, setShowCategoryList] = useState(false);
   const [address, setAddress] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState<{ placeId: string; text: string }[]>([]);
@@ -228,7 +245,7 @@ export default function Dashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category,
+          ...(categoryGroup ? { categories: categoryGroup.items } : { category }),
           address,
           radiusKm,
           province,
@@ -351,11 +368,38 @@ export default function Dashboard() {
               <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Category
               </label>
+
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {QUICK_GROUPS.map((g) => {
+                  const active = categoryGroup?.group === g.group;
+                  return (
+                    <button
+                      key={g.group}
+                      type="button"
+                      onClick={() => {
+                        setCategoryGroup(g);
+                        setCategory(g.group);
+                        setShowCategoryList(false);
+                      }}
+                      title={g.items.join(", ")}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition ${
+                        active
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : `${t.input} hover:border-blue-400`
+                      }`}
+                    >
+                      {g.emoji} {g.group}
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="flex">
                 <input
                   value={category}
                   onChange={(e) => {
                     setCategory(e.target.value);
+                    setCategoryGroup(null);
                     setShowCategoryList(true);
                   }}
                   onFocus={() => setShowCategoryList(true)}
@@ -369,6 +413,7 @@ export default function Dashboard() {
                     type="button"
                     onMouseDown={() => {
                       setCategory("");
+                      setCategoryGroup(null);
                       setShowCategoryList(true);
                     }}
                     className={`border border-l-0 px-2 text-sm ${t.input}`}
@@ -386,6 +431,11 @@ export default function Dashboard() {
                   ▼
                 </button>
               </div>
+              {categoryGroup && (
+                <p className={`text-[11px] mt-1 ${t.dropdownMuted}`}>
+                  Searching {categoryGroup.items.join(", ")} together.
+                </p>
+              )}
               {showCategoryList && (
                 <ul className={`absolute z-10 left-0 right-0 mt-1 border rounded-lg shadow-md max-h-56 overflow-y-auto ${t.dropdown}`}>
                   {category.trim()
@@ -395,6 +445,7 @@ export default function Dashboard() {
                             type="button"
                             onMouseDown={() => {
                               setCategory(c);
+                              setCategoryGroup(null);
                               setShowCategoryList(false);
                             }}
                             className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
@@ -415,6 +466,7 @@ export default function Dashboard() {
                                   type="button"
                                   onMouseDown={() => {
                                     setCategory(c);
+                                    setCategoryGroup(null);
                                     setShowCategoryList(false);
                                   }}
                                   className={`w-full text-left px-3 py-2 text-sm ${t.dropdownItem}`}
