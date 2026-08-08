@@ -353,15 +353,15 @@ ${philosophyImage ? `
       ${menuSections.map((section) => `
       <div>
         ${section.category ? `<h3 class="text-xl font-semibold mb-5 font-display" style="color:var(--primary);">${escapeHtml(section.category)}</h3>` : ""}
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           ${section.items.map((item) => `
-          <div class="flex items-baseline justify-between gap-4 r-card p-4" style="${cardStyle}${!R ? "background:#fff;" : ""}">
-            <div class="min-w-0">
-              <p class="font-medium font-display">${escapeHtml(item.name)}</p>
-              ${item.description ? `<p class="text-xs mt-0.5" style="${mutedStyle}">${escapeHtml(item.description)}</p>` : ""}
+          <article class="r-card p-5 hover-scale" style="${cardStyle}${!R ? "background:#fff;" : ""}">
+            <div class="flex items-baseline justify-between gap-3">
+              <h4 class="font-medium font-display">${escapeHtml(item.name)}</h4>
+              ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:var(--primary);">$${escapeHtml(item.price)}</span>` : ""}
             </div>
-            ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:var(--primary);">$${escapeHtml(item.price)}</span>` : ""}
-          </div>`).join("")}
+            ${item.description ? `<p class="text-xs mt-2" style="${mutedStyle}">${escapeHtml(item.description)}</p>` : ""}
+          </article>`).join("")}
         </div>
       </div>`).join("")}
     </div>

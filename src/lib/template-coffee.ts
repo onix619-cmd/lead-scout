@@ -177,15 +177,15 @@ ${wa ? `
       ${activeMenuSections.map((section) => `
       <div>
         ${section.category ? `<h3 class="text-xl font-semibold mb-5 font-display" style="color:#6f4e37;">${escapeHtml(section.category)}</h3>` : ""}
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           ${section.items.map((item) => `
-          <div class="flex items-baseline justify-between gap-4 p-4 rounded-xl border border-[#e6dbc8] bg-[#fbf9f5]">
-            <div class="min-w-0">
-              <p class="font-medium font-display text-[#2b2118]">${escapeHtml(item.name)}</p>
-              ${item.description ? `<p class="text-xs text-[#6f4e37] mt-0.5">${escapeHtml(item.description)}</p>` : ""}
+          <article class="p-5 rounded-xl border border-[#e6dbc8] bg-[#fbf9f5] hover-scale">
+            <div class="flex items-baseline justify-between gap-3">
+              <h4 class="font-medium font-display text-[#2b2118]">${escapeHtml(item.name)}</h4>
+              ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:#6f4e37;">$${escapeHtml(item.price)}</span>` : ""}
             </div>
-            ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:#6f4e37;">$${escapeHtml(item.price)}</span>` : ""}
-          </div>`).join("")}
+            ${item.description ? `<p class="text-xs text-[#6f4e37] mt-2">${escapeHtml(item.description)}</p>` : ""}
+          </article>`).join("")}
         </div>
       </div>`).join("")}
     </div>

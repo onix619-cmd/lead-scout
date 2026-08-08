@@ -50,6 +50,22 @@ export function generateClassicRestaurantHTML(
   const heroImage = galleryImages[0] ?? null;
   const storyImage = galleryImages[1] ?? galleryImages[0] ?? null;
   const menuLinkUrl = originalMenuPhotoUrl || lead.website;
+
+  const menuCarouselHtml = `
+    <div class="mt-12 relative max-w-3xl mx-auto">
+      <h3 class="text-lg font-semibold mb-3 text-center font-display text-secondary">Photos</h3>
+      <div class="overflow-hidden rounded-xl shadow-sm border border-black/5">
+        <div id="menu-carousel-track" class="flex transition-transform duration-500" style="transform: translateX(0%);">
+          ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-80 object-cover" />`).join("")}
+        </div>
+      </div>
+      ${galleryImages.length > 1 ? `
+      <button type="button" onclick="menuCarouselMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">‹</button>
+      <button type="button" onclick="menuCarouselMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.5);">›</button>
+      <div class="flex justify-center gap-1.5 mt-3">
+        ${galleryImages.map((_, i) => `<span class="menu-carousel-dot w-1.5 h-1.5 rounded-full" data-i="${i}" style="background:${i === 0 ? "var(--primary)" : "rgba(0,0,0,0.15)"};"></span>`).join("")}
+      </div>` : ""}
+    </div>`;
   const menuItemCount = countMenuItems(menuSections);
   const neighborhood = lead.address.split(",")[0];
 
@@ -278,6 +294,7 @@ export function generateClassicRestaurantHTML(
       </h2>
       ${menuHtml}
       ${menuLinkUrl ? `<div class="text-center mt-10"><a href="${menuLinkUrl}" target="_blank" class="inline-block border-2 border-primary text-primary font-semibold py-2.5 px-6 rounded-lg hover:bg-primary hover:text-white transition">${originalMenuPhotoUrl ? "View Original Menu ↗" : "View Full Menu ↗"}</a></div>` : ""}
+      ${galleryImages.length > 0 ? menuCarouselHtml : ""}
     </div>
   </section>
 
@@ -503,6 +520,18 @@ export function generateClassicRestaurantHTML(
     document.getElementById('mobile-menu-btn').addEventListener('click', function () {
       document.getElementById('mobile-menu').classList.toggle('hidden');
     });
+
+    let menuCarouselIndex = 0;
+    function menuCarouselMove(dir) {
+      const track = document.getElementById('menu-carousel-track');
+      if (!track) return;
+      const slides = track.children.length;
+      menuCarouselIndex = (menuCarouselIndex + dir + slides) % slides;
+      track.style.transform = 'translateX(' + (-menuCarouselIndex * 100) + '%)';
+      document.querySelectorAll('.menu-carousel-dot').forEach((dot, i) => {
+        dot.style.background = i === menuCarouselIndex ? 'var(--primary)' : 'rgba(0,0,0,0.15)';
+      });
+    }
 
     let mode = 'reservation';
     function setMode(m) {
