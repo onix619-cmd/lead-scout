@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "templateId": "fine-dining-dark-v1",
+  "templateVersion": "1.0.0",
+  "siteMeta": {
+    "title": "AUBURN Prime Steakhouse & Bar",
+    "description": "Dry-aged USDA Prime steaks, craft cocktails, and raw bar in a bold, industrial-chic setting.",
+    "language": "en",
+    "faviconUrl": "/favicon.ico"
+  },
+  "brand": {
+    "name": "AUBURN",
+    "tagline": "Prime Cut & Woodfire",
+    "description": "45-day in-house dry-aged beef, wood-fired charbroiling, and an uncompromised commitment to hospitality.",
+    "logoUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80",
+    "themeColors": {
+      "primaryBg": "#120E0C",
+      "surfaceBg": "#1E1815",
+      "accentGold": "#E07A5F",
+      "textPrimary": "#FFF8F5",
+      "textMuted": "#B0A29A"
+    },
+    "fonts": {
+      "headingFont": "Cinzel, serif",
+      "bodyFont": "Open Sans, sans-serif"
+    }
+  },
+  "details": {
+    "cuisineType": ["Steakhouse", "American", "Seafood"],
+    "priceRange": "$$$$",
+    "address": {
+      "street": "750 Boulevard René-Lévesque Ouest",
+      "city": "Montreal",
+      "provinceState": "QC",
+      "postalCode": "H3B 1X9",
+      "country": "Canada",
+      "googleMapUrl": "https://maps.google.com/?q=Montreal"
+    },
+    "contact": {
+      "phone": "+1 514 555 0144",
+      "email": "concierge@auburnsteak.com",
+      "generalInquiriesEmail": "info@auburnsteak.com"
+    },
+    "hours": [
+      {
+        "days": "Monday - Sunday",
+        "openTime": "17:00",
+        "closeTime": "23:00"
+      }
+    ]
+  },
+  "features": {
+    "reservations": {
+      "enabled": true,
+      "provider": "resy",
+      "url": "https://resy.com/cities/mtl/auburn"
+    },
+    "onlineOrdering": {
+      "enabled": true,
+      "url": "https://order.auburnsteak.com"
+    },
+    "privateEvents": {
+      "enabled": true,
+      "maxCapacity": 80
+    },
+    "giftCards": {
+      "enabled": true,
+      "url": "https://auburnsteak.com/gift-cards"
+    }
+  },
+  "navigation": {
+    "links": [
+      { "label": "Dinner Menu", "href": "#menu" },
+      { "label": "Dry Aging Room", "href": "#story" },
+      { "label": "Private Events", "href": "#events" },
+      { "label": "Location & Hours", "href": "#location" }
+    ],
+    "cta": {
+      "label": "Reserve Table",
+      "actionType": "reservation"
+    }
+  },
+  "hero": {
+    "badge": "IN-HOUSE DRY AGING ROOM",
+    "title": "AUBURN STEAKHOUSE",
+    "subtitle": "45-Day Dry-Aged Heritage Beef Cooked Over Live White Oak Flame.",
+    "primaryCtaLabel": "Reserve Table",
+    "secondaryCtaLabel": "View Cuts & Menu",
+    "bgVideoUrl": "",
+    "bgImageUrl": "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1920&q=80"
+  },
+  "storySection": {
+    "badge": "OUR PHILOSOPHY",
+    "title": "Crafted By Fire & Time",
+    "description": "Our culinary team selects heritage breeds aged for 45 days in our custom-built dry-aging chamber. Every steak is hand-cut and prepared over live oak charcoal.",
+    "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80",
+    "stats": [
+      { "label": "Dry Aging Days", "value": "45" },
+      { "label": "Wine Selections", "value": "450+" },
+      { "label": "Oak Charcoal Temp", "value": "1200°F" }
+    ]
+  },
+  "menuData": [
+    {
+      "categoryName": "Signature Prime Cuts",
+      "subtitle": "In-House 45-Day Dry Aged",
+      "items": [
+        {
+          "id": "st-01",
+          "name": "Tomahawk Ribeye (40 oz)",
+          "description": "USDA Prime, bone-in, served with smoked bone marrow butter and flaked Maldon sea salt.",
+          "price": 165.0,
+          "currency": "CAD",
+          "dietary": ["GF"],
+          "isFeatured": true
+        },
+        {
+          "id": "st-02",
+          "name": "Bone-In Kansas City Strip (18 oz)",
+          "description": "Dry-aged 45 days over white oak coals, finished with garlic-herb butter.",
+          "price": 88.0,
+          "currency": "CAD",
+          "dietary": ["GF"],
+          "isFeatured": false
+        }
+      ]
+    },
+    {
+      "categoryName": "Raw Bar & Starters",
+      "subtitle": "Chilled Seafood & Appetizers",
+      "items": [
+        {
+          "id": "st-03",
+          "name": "Colossal Chilled Seafood Tower",
+          "description": "Maine lobster, East Coast oysters, jumbo tiger prawns, king crab legs, mignonette, cocktail sauce.",
+          "price": 195.0,
+          "currency": "CAD",
+          "dietary": ["Shellfish", "GF"],
+          "isFeatured": true
+        }
+      ]
+    }
+  ],
+  "privateEventsSection": {
+    "title": "Private Dining & Events",
+    "subtitle": "Host your corporate gatherings, receptions, and celebrations in our private wine vault.",
+    "capacityText": "Accommodating groups up to 80 guests",
+    "ctaLabel": "Inquire About Events",
+    "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=80"
+  },
+  "socialLinks": {
+    "instagram": "https://instagram.com/auburnsteak",
+    "facebook": "https://facebook.com/auburnsteak",
+    "tripadvisor": "https://tripadvisor.com/auburnsteak"
+  }
+}
