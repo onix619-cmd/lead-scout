@@ -852,13 +852,23 @@ export default function Dashboard() {
                         </select>
                       </div>
                       {generatedUrls[lead.placeId] ? (
-                        <a
-                          href={generatedUrls[lead.placeId]}
-                          target="_blank"
-                          className="text-xs font-bold text-white rounded-lg px-3 py-1.5 bg-green-600 hover:bg-green-500 whitespace-nowrap text-center w-full uppercase"
-                        >
-                          View live site ↗
-                        </a>
+                        <div className="flex gap-2 w-full">
+                          <a
+                            href={generatedUrls[lead.placeId]}
+                            target="_blank"
+                            className="flex-1 text-xs font-bold text-white rounded-lg px-3 py-1.5 bg-green-600 hover:bg-green-500 whitespace-nowrap text-center uppercase"
+                          >
+                            View live site ↗
+                          </a>
+                          <button
+                            onClick={() => handleGenerate(lead)}
+                            disabled={generating.has(lead.placeId)}
+                            title="Regenerate with the currently chosen template style"
+                            className="flex-1 text-xs font-bold text-white rounded-lg px-3 py-1.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 whitespace-nowrap text-center uppercase"
+                          >
+                            {generating.has(lead.placeId) ? "Regenerating…" : "Regenerate"}
+                          </button>
+                        </div>
                       ) : (
                         <button
                           onClick={() => handleGenerate(lead)}
