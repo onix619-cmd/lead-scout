@@ -2,7 +2,6 @@ import { GeneratedContent, Lead, MenuSection } from "./types";
 import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
-import { generateClassicRestaurantHTML } from "./template-classic";
 import { generateFineDiningHTML } from "./template-fine-dining";
 
 function waLink(phone: string | null) {
@@ -28,7 +27,7 @@ function schemaTypeFor(themeKey: string) {
   return "LocalBusiness";
 }
 
-export type TemplateOverride = "restaurant-1" | "restaurant-2" | "restaurant-3" | "restaurant-4" | "coffee" | undefined;
+export type TemplateOverride = "restaurant-1" | "restaurant-2" | "restaurant-3" | "coffee" | undefined;
 
 export function generateLandingPageHTML(
   lead: Lead,
@@ -42,8 +41,6 @@ export function generateLandingPageHTML(
   let effectiveVariant = variant;
 
   if (templateOverride === "restaurant-3") {
-    return generateClassicRestaurantHTML(lead, content, menuSections, originalMenuPhotoUrl);
-  } else if (templateOverride === "restaurant-4") {
     return generateFineDiningHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "coffee") {
     themeKey = "coffee";
@@ -353,18 +350,23 @@ ${philosophyImage ? `
     ${sectionHeading(R ? "Flavour & Tradition" : theme.labels.featured, "MENU")}
     ${menuSections.length > 0 ? `
     <div class="space-y-12">
-      ${menuSections.map((section) => `
+      ${menuSections.map((section, sIdx) => `
       <div>
-        ${section.category ? `<h3 class="text-xl font-semibold mb-5 font-display" style="color:var(--primary);">${escapeHtml(section.category)}</h3>` : ""}
+        ${section.category ? `<h3 class="text-2xl font-semibold mb-6 mt-12 first:mt-0 text-center font-display" style="color:var(--primary);">${escapeHtml(section.category)}</h3>` : ""}
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          ${section.items.map((item) => `
-          <article class="r-card p-5 hover-scale" style="${cardStyle}${!R ? "background:#fff;" : ""}">
-            <div class="flex items-baseline justify-between gap-3">
+          ${section.items.map((item, iIdx) => {
+            const isSignature = R && sIdx === 0 && iIdx === 0;
+            const itemStyle = `${cardStyle}${!R ? "background:#fff;" : ""}${isSignature ? "border:1px solid var(--primary);" : ""}`;
+            return `
+          <article class="r-card p-5 hover-scale" style="${itemStyle}">
+            ${isSignature ? `<span class="text-[10px] uppercase tracking-widest font-semibold" style="color:var(--primary);">Signature</span>` : ""}
+            <div class="flex items-baseline justify-between gap-3 mt-1">
               <h4 class="font-medium font-display">${escapeHtml(item.name)}</h4>
               ${item.price ? `<span class="font-semibold whitespace-nowrap" style="color:var(--primary);">$${escapeHtml(item.price)}</span>` : ""}
             </div>
             ${item.description ? `<p class="text-xs mt-2" style="${mutedStyle}">${escapeHtml(item.description)}</p>` : ""}
-          </article>`).join("")}
+          </article>`;
+          }).join("")}
         </div>
       </div>`).join("")}
     </div>

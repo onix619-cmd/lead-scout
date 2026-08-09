@@ -21,7 +21,7 @@ function splitHoursLine(line: string): [string, string] {
 const starsHtml = (count: number) =>
   Array.from({ length: 5 }).map((_, i) => `<span style="color:${i < count ? "#E07A5F" : "rgba(255,255,255,0.15)"};">★</span>`).join("");
 
-// A fourth restaurant style: bold, dark fine-dining ("restaurant-4"), styled
+// The third restaurant style: bold, dark fine-dining ("restaurant-3"), styled
 // off the design tokens in src/lib/templates/master_restaurant_template.json
 // (Cinzel display serif, dark charcoal surfaces, terracotta-gold accent).
 // Content is fully dynamic — driven by the same Lead / GeneratedContent /
@@ -171,7 +171,7 @@ export function generateFineDiningHTML(
       </ul>
 
       <div class="hidden md:block">
-        <a href="#reserve" class="btn-gold text-sm font-semibold px-5 py-2.5 rounded hover-scale tracking-wide">Reserve Table</a>
+        <a href="${wa ? "#hero" : "#reserve"}" onclick="${wa ? `window.open('https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to place an order.`)}','_blank'); return false;` : ""}" class="btn-gold text-sm font-semibold px-5 py-2.5 rounded hover-scale tracking-wide">${wa ? "Order Now" : "Reserve Table"}</a>
       </div>
 
       <button id="mobile-menu-btn" class="md:hidden flex items-center focus:outline-none" aria-label="Toggle menu">
@@ -210,7 +210,8 @@ export function generateFineDiningHTML(
         <span>${lead.rating} / 5${lead.reviewCount ? ` &middot; ${lead.reviewCount}+ reviews` : ""}</span>
       </div>` : ""}
       <div class="flex flex-wrap gap-4 justify-center">
-        <a href="#reserve" class="btn-gold font-semibold py-3 px-7 rounded hover-scale tracking-wide">Reserve Table</a>
+        ${wa ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(`Hi ${lead.name}, I'd like to place an order.`)}" target="_blank" class="btn-gold font-semibold py-3 px-7 rounded hover-scale tracking-wide">Order Now</a>` : ""}
+        <a href="#reserve" class="${wa ? "inline-block border" : "btn-gold"} font-semibold py-3 px-7 rounded hover-scale tracking-wide" style="${wa ? "border-color:rgba(224,122,95,0.5); color:#E07A5F;" : ""}">Reserve Table</a>
         <a href="#menu" class="inline-block border font-semibold py-3 px-7 rounded hover:bg-white/5 transition tracking-wide" style="border-color:rgba(255,255,255,0.3); color:#FFF8F5;">
           View Menu
         </a>
