@@ -219,6 +219,20 @@ export function generateFineDiningHTML(
     </div>
   </section>
 
+  ${wa ? `
+  <!-- ====================== QUICK ORDER ====================== -->
+  <section id="order-now" class="py-12 border-b reveal" style="background:#1E1815; border-color:rgba(255,255,255,0.08);">
+    <div class="max-w-md mx-auto px-4 text-center">
+      <p class="text-xs uppercase tracking-[0.2em] font-semibold mb-2" style="color:#E07A5F;">Order Now</p>
+      <h2 class="text-2xl font-semibold mb-4 font-display" style="color:#FFF8F5;">Skip the Wait, Order Ahead</h2>
+      <div class="flex flex-col gap-3">
+        <textarea id="quick-order-text" rows="3" placeholder="What would you like to order? (e.g. 2x Ribeye, 1x Seafood Tower...)" class="w-full rounded px-4 py-3 text-sm border resize-y" style="background:#120E0C; border-color:rgba(255,255,255,0.12); color:#FFF8F5;"></textarea>
+        <button type="button" onclick="sendQuickOrder()" class="btn-gold font-medium py-3.5 rounded w-full hover-scale uppercase tracking-wider text-sm">Send Order ↗</button>
+      </div>
+      <p class="text-xs mt-2" style="color:#8A7D75;">Opens WhatsApp with your order typed in — just hit send.</p>
+    </div>
+  </section>` : ""}
+
   <!-- ====================== STORY ====================== -->
   <section id="story" class="py-20 sm:py-28 reveal" style="background:#1E1815;">
     <div class="max-w-6xl mx-auto px-4 md:px-8 grid sm:grid-cols-2 gap-12 items-center">
@@ -364,9 +378,13 @@ export function generateFineDiningHTML(
           </div>
         </div>
 
-        <!-- Reservation form -->
+        <!-- Reservation / Order form -->
         <div id="reserve" class="rounded-lg p-6 border" style="background:#120E0C; border-color:rgba(255,255,255,0.08);">
-          <h3 class="text-lg font-semibold mb-4 font-display" style="color:#FFF8F5;">Reserve a Table</h3>
+          <h3 class="text-lg font-semibold mb-4 font-display" style="color:#FFF8F5;">Reserve or Order</h3>
+          <div class="flex gap-2 mb-5">
+            <button type="button" id="mode-reservation" onclick="setReserveMode('reservation')" class="flex-1 py-2 rounded text-sm font-medium btn-gold">Reservation</button>
+            <button type="button" id="mode-order" onclick="setReserveMode('order')" class="flex-1 py-2 rounded text-sm font-medium border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#B0A29A;">Order / Question</button>
+          </div>
           <form id="reserve-form" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -378,25 +396,27 @@ export function generateFineDiningHTML(
                 <input id="f-phone" type="tel" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" placeholder="(555) 123-4567" />
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-xs block mb-1" style="color:#8A7D75;">Guests</label>
-                <select id="f-guests" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;">
-                  ${[2, 3, 4, 5, 6].map((n) => `<option value="${n}" ${n === 2 ? "selected" : ""}>${n} Guests</option>`).join("")}
-                  <option value="7+">7+ Guests (Group)</option>
-                </select>
+            <div id="reservation-fields" class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs block mb-1" style="color:#8A7D75;">Guests</label>
+                  <select id="f-guests" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;">
+                    ${[2, 3, 4, 5, 6].map((n) => `<option value="${n}" ${n === 2 ? "selected" : ""}>${n} Guests</option>`).join("")}
+                    <option value="7+">7+ Guests (Group)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs block mb-1" style="color:#8A7D75;">Time</label>
+                  <input id="f-time" type="time" value="19:00" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" />
+                </div>
               </div>
               <div>
-                <label class="text-xs block mb-1" style="color:#8A7D75;">Time</label>
-                <input id="f-time" type="time" value="19:00" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" />
+                <label class="text-xs block mb-1" style="color:#8A7D75;">Date</label>
+                <input id="f-date" type="date" required onclick="this.showPicker && this.showPicker()" class="w-full rounded px-3 py-2 text-sm border cursor-pointer" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" />
               </div>
             </div>
             <div>
-              <label class="text-xs block mb-1" style="color:#8A7D75;">Date</label>
-              <input id="f-date" type="date" required onclick="this.showPicker && this.showPicker()" class="w-full rounded px-3 py-2 text-sm border cursor-pointer" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" />
-            </div>
-            <div>
-              <label class="text-xs block mb-1" style="color:#8A7D75;">Special requests / allergies</label>
+              <label class="text-xs block mb-1" style="color:#8A7D75;" id="f-note-label">Special requests / allergies</label>
               <textarea id="f-note" rows="3" class="w-full rounded px-3 py-2 text-sm border" style="background:#1E1815; border-color:rgba(255,255,255,0.12); color:#FFF8F5;" placeholder="Allergies, special occasion, seating preference..."></textarea>
             </div>
             <button type="submit" class="w-full btn-gold font-semibold py-3 rounded hover-scale tracking-wide">
@@ -460,22 +480,58 @@ export function generateFineDiningHTML(
       });
     }
 
+    let fdReserveMode = 'reservation';
+    function setReserveMode(m) {
+      fdReserveMode = m;
+      document.getElementById('reservation-fields').style.display = m === 'reservation' ? 'block' : 'none';
+      document.getElementById('f-note-label').textContent = m === 'reservation' ? 'Special requests / allergies' : 'What would you like to order or ask?';
+      const activeStyle = 'flex-1 py-2 rounded text-sm font-medium btn-gold';
+      const inactiveStyle = 'flex-1 py-2 rounded text-sm font-medium border';
+      const modeReservationBtn = document.getElementById('mode-reservation');
+      const modeOrderBtn = document.getElementById('mode-order');
+      modeReservationBtn.className = m === 'reservation' ? activeStyle : inactiveStyle;
+      modeOrderBtn.className = m === 'order' ? activeStyle : inactiveStyle;
+      if (m === 'order') {
+        modeOrderBtn.style.background = '';
+        modeReservationBtn.style.background = '#1E1815';
+        modeReservationBtn.style.borderColor = 'rgba(255,255,255,0.12)';
+        modeReservationBtn.style.color = '#B0A29A';
+      } else {
+        modeReservationBtn.style.background = '';
+        modeOrderBtn.style.background = '#1E1815';
+        modeOrderBtn.style.borderColor = 'rgba(255,255,255,0.12)';
+        modeOrderBtn.style.color = '#B0A29A';
+      }
+    }
+
     document.getElementById('reserve-form').addEventListener('submit', function (e) {
       e.preventDefault();
       const name = document.getElementById('f-name').value.trim();
       const phone = document.getElementById('f-phone').value.trim();
-      const guests = document.getElementById('f-guests').value;
-      const date = document.getElementById('f-date').value;
-      const time = document.getElementById('f-time').value;
       const note = document.getElementById('f-note').value.trim();
-      let msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to reserve for ' + guests + ' on ' + (date || '[date]') + ' at ' + (time || '[time]') + '. Name: ' + name + '.';
+      let msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, ';
+      if (fdReserveMode === 'reservation') {
+        const guests = document.getElementById('f-guests').value;
+        const date = document.getElementById('f-date').value;
+        const time = document.getElementById('f-time').value;
+        msg += 'I would like to reserve for ' + guests + ' on ' + (date || '[date]') + ' at ' + (time || '[time]') + '. Name: ' + name + '.';
+        if (note) msg += ' Note: ' + note;
+      } else {
+        msg += 'I have a question / order request: ' + (note || '[details]') + '. Name: ' + name + '.';
+      }
       if (phone) msg += ' Phone: ' + phone + '.';
-      if (note) msg += ' Note: ' + note;
 
       ${wa
         ? `window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');`
         : `alert('Thanks ' + name + '! Please call us directly to confirm: ${escapeHtml(lead.phone ?? "see contact section")}');`}
     });
+
+    function sendQuickOrder() {
+      const input = document.getElementById('quick-order-text');
+      const text = input ? input.value.trim() : '';
+      const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + (text || '[details]') + '.';
+      window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');
+    }
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('show'); });
