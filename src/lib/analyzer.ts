@@ -1,4 +1,5 @@
 import { WebsiteScore } from "./types";
+import { looksLikeParkedOrPlaceholderPage } from "./menu";
 
 // Rule-based website quality scoring. Deliberately avoids needing an OpenAI
 // key for this phase — it fetches the site's HTML and checks for concrete
@@ -32,6 +33,20 @@ export async function analyzeWebsite(url: string): Promise<WebsiteScore> {
       checks: [{ label: "Website reachable", passed: false, weight: 100 }],
       suggestions: ["Website did not respond — treat as high priority lead."],
       error: err?.message ?? "Failed to fetch website",
+    };
+  }
+
+  // The listed domain is registered but never actually built out — it
+  // resolves to a registrar/hosting parked-domain page instead of a real
+  // site. Treat this exactly like "no website": don't score it, don't
+  // surface it as a link, and flag it clearly for the person reviewing leads.
+  if (looksLikeParkedOrPlaceholderPage(html)) {
+    return {
+      score: 0,
+      hasWebsite: false,
+      checks: [{ label: "Website reachable", passed: false, weight: 100 }],
+      suggestions: ["This domain is parked / unclaimed — treat as no website."],
+      error: "Domain resolves to a parked/placeholder page, not a real website.",
     };
   }
 

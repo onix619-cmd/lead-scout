@@ -102,6 +102,32 @@ export async function autoExtractMenuFromImages(photoUrls: string[], apiKey: str
   return "";
 }
 
+// Registrar/hosting placeholder pages ("this domain is parked", default
+// Apache/Nginx pages, "buy this domain", etc.) show up when a business's
+// listed website has expired or was never really built out. Scraping one of
+// these and parsing its marketing copy as menu items is worse than finding
+// no menu at all, so we bail out before attempting to parse anything.
+export const PARKED_DOMAIN_SIGNATURES = [
+  /parked\s+domain/i,
+  /domain\s+is\s+parked/i,
+  /this\s+domain\s+(is|has been)\s+(for sale|registered)/i,
+  /buy\s+this\s+domain/i,
+  /domain\s+parking/i,
+  /manage\s+(it\s+in\s+)?(your\s+)?(hostinger|godaddy|namecheap|bluehost|wix|squarespace)\s+account/i,
+  /hostinger\s+dns\s+system/i,
+  /find\s+similar\s+domains/i,
+  /coming\s+soon.{0,40}(website|page)/i,
+  /under\s+construction/i,
+  /apache2?\s+(ubuntu\s+)?default\s+page/i,
+  /welcome\s+to\s+nginx/i,
+  /index\s+of\s+\//i,
+  /this\s+site\s+can.?t\s+be\s+reached/i,
+];
+
+export function looksLikeParkedOrPlaceholderPage(rawHtml: string): boolean {
+  return PARKED_DOMAIN_SIGNATURES.some((re) => re.test(rawHtml));
+}
+
 export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]> {
   try {
     const controller = new AbortController();
@@ -114,6 +140,8 @@ export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]
     clearTimeout(timeout);
     if (!res.ok) return [];
     const html = await res.text();
+
+    if (looksLikeParkedOrPlaceholderPage(html)) return [];
 
     const text = html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -133,6 +161,17 @@ export async function extractMenuFromWebsite(url: string): Promise<MenuSection[]
     const sections = parseMenuText(text);
     const total = countMenuItems(sections);
     if (total < 4) return [];
+
+    // Real scraped menus should mostly consist of priced items. If barely
+    // any lines matched a price, this almost certainly isn't a menu at all
+    // (nav links, marketing copy, footer text, etc. parsed as "items") —
+    // discard rather than publish it as the business's menu.
+    const pricedCount = sections.reduce(
+      (sum, s) => sum + s.items.filter((it) => it.price).length,
+      0
+    );
+    if (pricedCount < Math.max(3, Math.ceil(total * 0.3))) return [];
+
     return sections;
   } catch {
     return [];

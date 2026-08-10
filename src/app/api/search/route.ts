@@ -82,8 +82,12 @@ export async function POST(req: NextRequest) {
         const websiteScore = await analyzeWebsite(b.website);
         return {
           ...b,
+          // If the listed domain turned out to be parked/placeholder junk,
+          // don't keep it around as a "real" website — it would otherwise
+          // still get offered up as a "View Menu" link on generated sites.
+          website: websiteScore.hasWebsite ? b.website : null,
           websiteScore,
-          priority: priorityFromScore(true, websiteScore.score),
+          priority: priorityFromScore(websiteScore.hasWebsite, websiteScore.score),
           socialLinks: websiteScore.socialLinks,
         };
       })
