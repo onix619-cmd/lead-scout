@@ -21,13 +21,12 @@ function splitHoursLine(line: string): [string, string] {
 const starsHtml = (count: number) =>
   Array.from({ length: 5 }).map((_, i) => `<span style="color:${i < count ? "#E07A5F" : "rgba(255,255,255,0.15)"};">★</span>`).join("");
 
-// The third restaurant style: bold, dark fine-dining ("restaurant-3"), styled
-// off the design tokens in src/lib/templates/master_restaurant_template.json
-// (Cinzel display serif, dark charcoal surfaces, terracotta-gold accent).
-// Content is fully dynamic — driven by the same Lead / GeneratedContent /
-// MenuSection data as every other template — the JSON file is a design
-// reference only, not literal site content.
-export function generateFineDiningHTML(
+// A fourth restaurant style ("restaurant-4"): a duplicate of the fine-dining
+// template (restaurant-3) — same dark charcoal/Cinzel layout, sections, and
+// carousel — but with the golden-orange button gradient from the original
+// (now-retired) Restaurant Style 1 template instead of the terracotta-gold
+// accent. Content is fully dynamic, same as every other template.
+export function generateFineDiningGoldHTML(
   lead: Lead,
   content: GeneratedContent,
   menuSections: MenuSection[] = [],
@@ -134,7 +133,7 @@ export function generateFineDiningHTML(
     html { scroll-behavior: smooth; }
     body { font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:#120E0C; color:#FFF8F5; }
     .font-display { font-family: "Cinzel", serif; }
-    .btn-gold { background: linear-gradient(90deg, #E07A5F, #C15F45); color: #120E0C; }
+    .btn-gold { background: linear-gradient(90deg, #fdbe03, #fe4900); color: #120E0C; }
     .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
     .reveal.show { opacity: 1; transform: translateY(0); }
     .hover-scale { transition: transform .3s ease; }

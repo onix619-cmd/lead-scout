@@ -3,6 +3,7 @@ import { detectThemeKey, getTheme } from "./theme";
 import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
 import { generateFineDiningHTML } from "./template-fine-dining";
+import { generateFineDiningGoldHTML } from "./template-fine-dining-gold";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -27,7 +28,15 @@ function schemaTypeFor(themeKey: string) {
   return "LocalBusiness";
 }
 
-export type TemplateOverride = "restaurant-1" | "restaurant-2" | "restaurant-3" | "coffee" | undefined;
+// Restaurant Style 1 & 2 (the dark-elegant "R" variant rendered further
+// below in this file) have been retired. Any restaurant — whether picked
+// explicitly via "restaurant-3"/"restaurant-4", or auto-detected from the
+// business category with no override chosen — now renders through one of
+// the two fine-dining templates instead. The old R-branch code later in
+// this file is kept only because it's still shared with the icecream/
+// generic themes' styling ternaries; it can no longer actually be reached
+// for restaurants.
+export type TemplateOverride = "restaurant-3" | "restaurant-4" | "coffee" | undefined;
 
 export function generateLandingPageHTML(
   lead: Lead,
@@ -42,14 +51,15 @@ export function generateLandingPageHTML(
 
   if (templateOverride === "restaurant-3") {
     return generateFineDiningHTML(lead, content, menuSections, originalMenuPhotoUrl);
+  } else if (templateOverride === "restaurant-4") {
+    return generateFineDiningGoldHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "coffee") {
     themeKey = "coffee";
-  } else if (templateOverride === "restaurant-1") {
-    themeKey = "restaurant";
-    effectiveVariant = "A";
-  } else if (templateOverride === "restaurant-2") {
-    themeKey = "restaurant";
-    effectiveVariant = "B";
+  } else if (themeKey === "restaurant") {
+    // No explicit override, but the business auto-detected as a
+    // restaurant — default to the fine-dining template rather than the
+    // retired dark-elegant Style 1/2 renderer.
+    return generateFineDiningHTML(lead, content, menuSections, originalMenuPhotoUrl);
   }
 
   if (themeKey === "coffee") {
@@ -57,7 +67,7 @@ export function generateLandingPageHTML(
   }
 
   const theme = getTheme(themeKey, lead.name);
-  const R = themeKey === "restaurant"; // full dark, elegant/gold variant
+  const R = false; // restaurant styling branch below is retired and unreachable
   const isB = R && effectiveVariant === "B"; // second visual variant: sharp corners + accent color
   const wa = waLink(lead.phone);
   const waNum = waDigits(lead.phone);

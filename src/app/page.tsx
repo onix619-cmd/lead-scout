@@ -832,9 +832,8 @@ export default function Dashboard() {
                           className={`w-full border rounded-lg text-[11px] px-2 py-1.5 focus:outline-none ${t.input}`}
                         >
                           <option value="">Auto (by category)</option>
-                          <option value="restaurant-1">Restaurant — Style 1</option>
-                          <option value="restaurant-2">Restaurant — Style 2</option>
                           <option value="restaurant-3">Restaurant — Style 3 (Fine Dining)</option>
+                          <option value="restaurant-4">Restaurant — Style 4 (Fine Dining • Gold)</option>
                           <option value="coffee">Coffee Shop</option>
                         </select>
                       </div>
