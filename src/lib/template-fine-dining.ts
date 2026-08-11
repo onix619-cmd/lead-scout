@@ -293,7 +293,7 @@ export function generateFineDiningHTML(
 
       ${lead.realReviews && lead.realReviews.length > 0 ? `
       <div class="grid sm:grid-cols-3 gap-5 text-left">
-        ${lead.realReviews.map((r) => {
+        ${lead.realReviews.slice(0, 6).map((r) => {
           const snippet = r.text.length > 220 ? r.text.slice(0, 220).trim() + "…" : r.text;
           const initial = (r.authorName || "G").trim().charAt(0).toUpperCase();
           return `
@@ -544,7 +544,12 @@ export function generateFineDiningHTML(
     function sendQuickOrder() {
       const input = document.getElementById('quick-order-text');
       const text = input ? input.value.trim() : '';
-      const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + (text || '[details]') + '.';
+      if (!text) {
+        if (input) input.focus();
+        alert('Please type what you would like to order first.');
+        return;
+      }
+      const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + text + '.';
       window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');
     }
 

@@ -231,7 +231,12 @@ ${wa ? `
   function sendGrabOrder() {
     const input = document.getElementById('grab-order-text');
     const text = input ? input.value.trim() : '';
-    const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + (text || '[details]') + '.';
+    if (!text) {
+      if (input) input.focus();
+      alert('Please type what you would like to order first.');
+      return;
+    }
+    const msg = 'Hi ${escapeHtml(lead.name).replace(/'/g, "\\'")}, I would like to order: ' + text + '.';
     window.open('https://wa.me/${waNum}?text=' + encodeURIComponent(msg), '_blank');
   }
 </script>
