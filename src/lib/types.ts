@@ -31,14 +31,14 @@ export type WebsiteScore = {
     weight: number;
   }[];
   suggestions: string[];
-  socialLinks?: { instagram?: string; facebook?: string };
+  socialLinks?: { instagram?: string; facebook?: string; tiktok?: string };
   error?: string;
 };
 
 export type Lead = Business & {
   websiteScore: WebsiteScore;
   priority: "high" | "medium" | "low";
-  socialLinks?: { instagram?: string; facebook?: string };
+  socialLinks?: { instagram?: string; facebook?: string; tiktok?: string };
   uploadedImages?: string[]; // data URLs, user-provided
   realReviews?: { authorName: string; rating: number; text: string; relativeTime: string }[];
   menuText?: string; // raw menu the user pasted in, real data, parsed at generation time

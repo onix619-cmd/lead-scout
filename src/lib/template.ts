@@ -595,10 +595,11 @@ ${philosophyImage ? `
   </div>
   <div class="max-w-6xl mx-auto px-6 mt-10 pt-6 flex flex-wrap items-center justify-between gap-3 text-xs" style="border-top:1px solid rgba(255,255,255,0.08); opacity:.6;">
     <span>© ${new Date().getFullYear()} ${escapeHtml(lead.name)}. All rights reserved.</span>
-    <div class="flex gap-4">
-      ${lead.socialLinks?.instagram ? `<a href="${lead.socialLinks.instagram}" target="_blank">Instagram</a>` : ""}
-      ${lead.socialLinks?.facebook ? `<a href="${lead.socialLinks.facebook}" target="_blank">Facebook</a>` : ""}
-      <a href="#top">Back to top ↑</a>
+    <div class="flex items-center gap-4">
+      <a href="${lead.socialLinks?.instagram || "https://instagram.com"}" target="_blank" class="hover:underline flex items-center gap-1">📸 Instagram</a>
+      <a href="${lead.socialLinks?.facebook || "https://facebook.com"}" target="_blank" class="hover:underline flex items-center gap-1">📘 Facebook</a>
+      <a href="${lead.socialLinks?.tiktok || "https://tiktok.com"}" target="_blank" class="hover:underline flex items-center gap-1">🎵 TikTok</a>
+      <a href="#top" class="ml-2">Back to top ↑</a>
     </div>
   </div>
   <p class="text-center text-xs mt-6" style="opacity:.4;">Website mockup generated for demo purposes.</p>
