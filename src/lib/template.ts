@@ -4,6 +4,7 @@ import { countMenuItems } from "./menu";
 import { generateCoffeeLandingPageHTML } from "./template-coffee";
 import { generateFineDiningHTML } from "./template-fine-dining";
 import { generateFineDiningGoldHTML } from "./template-fine-dining-gold";
+import { generateLoungeHTML } from "./template-lounge";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -36,7 +37,7 @@ function schemaTypeFor(themeKey: string) {
 // this file is kept only because it's still shared with the icecream/
 // generic themes' styling ternaries; it can no longer actually be reached
 // for restaurants.
-export type TemplateOverride = "restaurant-3" | "restaurant-4" | "coffee" | undefined;
+export type TemplateOverride = "restaurant-3" | "restaurant-4" | "lounge" | "coffee" | undefined;
 
 export function generateLandingPageHTML(
   lead: Lead,
@@ -53,6 +54,8 @@ export function generateLandingPageHTML(
     return generateFineDiningHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "restaurant-4") {
     return generateFineDiningGoldHTML(lead, content, menuSections, originalMenuPhotoUrl);
+  } else if (templateOverride === "lounge") {
+    return generateLoungeHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "coffee") {
     themeKey = "coffee";
   } else if (themeKey === "restaurant") {

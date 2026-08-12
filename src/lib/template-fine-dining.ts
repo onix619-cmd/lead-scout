@@ -53,19 +53,21 @@ export function generateFineDiningHTML(
   const neighborhood = lead.address.split(",")[0];
 
   const menuCarouselHtml = `
-    <div class="mt-14 relative max-w-3xl mx-auto" onmouseenter="fdCarouselAutoStop()" onmouseleave="fdCarouselAutoStart()">
-      <h3 class="text-lg font-semibold mb-4 text-center" style="font-family:'Cinzel',serif; color:#FFF8F5;">Gallery</h3>
-      <div class="overflow-hidden rounded-lg border" style="border-color:rgba(224,122,95,0.2);">
-        <div id="fd-carousel-track" class="flex transition-transform duration-500" style="transform: translateX(0%);">
-          ${galleryImages.map((img) => `<img src="${img}" class="w-full shrink-0 h-64 sm:h-96 object-cover" />`).join("")}
-        </div>
+    <div class="mt-14 relative max-w-4xl mx-auto select-none" onmouseenter="fdCarouselAutoStop()" onmouseleave="fdCarouselAutoStart()">
+      <h3 class="text-lg font-semibold mb-6 text-center" style="font-family:'Cinzel',serif; color:#FFF8F5;">Gallery</h3>
+      <div id="fd-coverflow-stage" class="relative h-64 sm:h-96 mx-auto" style="max-width: 640px;">
+        ${galleryImages.map((img, i) => `
+        <div class="fd-coverflow-slide absolute top-0 left-1/2 rounded-xl overflow-hidden shadow-2xl" data-i="${i}" style="width:72%; height:100%; transition: transform .5s ease, filter .5s ease, opacity .5s ease; border:1px solid rgba(224,122,95,0.2);">
+          <img src="${img}" class="w-full h-full object-cover" draggable="false" />
+        </div>`).join("")}
       </div>
       ${galleryImages.length > 1 ? `
-      <button type="button" onclick="fdCarouselUserMove(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.55);">‹</button>
-      <button type="button" onclick="fdCarouselUserMove(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:rgba(0,0,0,0.55);">›</button>
-      <div class="flex justify-center gap-1.5 mt-3">
+      <button type="button" onclick="fdCarouselUserMove(-1)" class="absolute left-0 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white z-40" style="background:rgba(0,0,0,0.55);">‹</button>
+      <button type="button" onclick="fdCarouselUserMove(1)" class="absolute right-0 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white z-40" style="background:rgba(0,0,0,0.55);">›</button>
+      <div class="flex justify-center gap-1.5 mt-4">
         ${galleryImages.map((_, i) => `<span class="fd-carousel-dot w-1.5 h-1.5 rounded-full" data-i="${i}" style="background:${i === 0 ? "#E07A5F" : "rgba(255,255,255,0.15)"};"></span>`).join("")}
-      </div>` : ""}
+      </div>
+      <p class="text-center text-xs mt-3" style="color:#6B605A;">Scroll over the photo to browse</p>` : ""}
     </div>`;
 
   const menuHtml =
@@ -470,20 +472,43 @@ export function generateFineDiningHTML(
 
     let fdCarouselIndex = 0;
     let fdCarouselTimer = null;
-    function fdCarouselMove(dir) {
-      const track = document.getElementById('fd-carousel-track');
-      if (!track) return;
-      const slides = track.children.length;
-      fdCarouselIndex = (fdCarouselIndex + dir + slides) % slides;
-      track.style.transform = 'translateX(' + (-fdCarouselIndex * 100) + '%)';
-      document.querySelectorAll('.fd-carousel-dot').forEach((dot, i) => {
+    let fdWheelLock = false;
+
+    function fdPositionSlides() {
+      const slides = document.querySelectorAll('#fd-coverflow-stage .fd-coverflow-slide');
+      const total = slides.length;
+      if (!total) return;
+      slides.forEach(function (el) {
+        const i = parseInt(el.getAttribute('data-i'), 10);
+        let offset = i - fdCarouselIndex;
+        if (offset > total / 2) offset -= total;
+        if (offset < -total / 2) offset += total;
+        const abs = Math.abs(offset);
+        let tx, scale, blur, opacity, z;
+        if (abs === 0) { tx = 0; scale = 1; blur = 0; opacity = 1; z = 30; }
+        else if (abs === 1) { tx = offset * 78; scale = 0.75; blur = 3; opacity = 0.55; z = 20; }
+        else { tx = offset * 60; scale = 0.55; blur = 5; opacity = 0; z = 10; }
+        el.style.transform = 'translate(-50%, 0) translateX(' + tx + '%) scale(' + scale + ')';
+        el.style.filter = 'blur(' + blur + 'px)';
+        el.style.opacity = String(opacity);
+        el.style.zIndex = String(z);
+        el.style.pointerEvents = abs === 0 ? 'auto' : 'none';
+      });
+      document.querySelectorAll('.fd-carousel-dot').forEach(function (dot, i) {
         dot.style.background = i === fdCarouselIndex ? '#E07A5F' : 'rgba(255,255,255,0.15)';
       });
     }
+    function fdCarouselMove(dir) {
+      const slides = document.querySelectorAll('#fd-coverflow-stage .fd-coverflow-slide');
+      const total = slides.length;
+      if (!total) return;
+      fdCarouselIndex = (fdCarouselIndex + dir + total) % total;
+      fdPositionSlides();
+    }
     function fdCarouselAutoStart() {
       fdCarouselAutoStop();
-      const track = document.getElementById('fd-carousel-track');
-      if (!track || track.children.length <= 1) return;
+      const slides = document.querySelectorAll('#fd-coverflow-stage .fd-coverflow-slide');
+      if (slides.length <= 1) return;
       fdCarouselTimer = setInterval(function () { fdCarouselMove(1); }, 4000);
     }
     function fdCarouselAutoStop() {
@@ -493,7 +518,23 @@ export function generateFineDiningHTML(
       fdCarouselMove(dir);
       fdCarouselAutoStart();
     }
+    fdPositionSlides();
     fdCarouselAutoStart();
+
+    // Scrolling the mouse wheel over the photo browses left/right instead of
+    // scrolling the page: scroll up -> next (right), scroll down -> previous
+    // (left). Locked briefly after each step so one wheel "tick" doesn't
+    // fire several moves at once (especially on trackpads).
+    const fdStage = document.getElementById('fd-coverflow-stage');
+    if (fdStage) {
+      fdStage.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        if (fdWheelLock) return;
+        fdWheelLock = true;
+        if (e.deltaY < 0) { fdCarouselUserMove(1); } else if (e.deltaY > 0) { fdCarouselUserMove(-1); }
+        setTimeout(function () { fdWheelLock = false; }, 450);
+      }, { passive: false });
+    }
 
     let fdReserveMode = 'reservation';
     function setReserveMode(m) {
