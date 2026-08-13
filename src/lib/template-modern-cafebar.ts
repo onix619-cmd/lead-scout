@@ -29,19 +29,24 @@ const SOCIAL_ICON_PATHS = {
     "M16.6 5.82c-.9-.95-1.4-2.2-1.4-3.52h-3.1v13.44a3.1 3.1 0 11-2.2-2.97V9.65a6.1 6.1 0 105.3 6.05V9.9a8.1 8.1 0 004.8 1.56V8.36a5.6 5.6 0 01-3.4-2.54z",
 };
 function socialIconsHtml(lead: Lead, accentColor: string, dimColor: string): string {
+  const FALLBACK_URLS: Record<"instagram" | "facebook" | "tiktok", string> = {
+    instagram: "https://instagram.com",
+    facebook: "https://facebook.com",
+    tiktok: "https://tiktok.com",
+  };
   const platforms: { key: "instagram" | "facebook" | "tiktok"; url?: string }[] = [
     { key: "instagram", url: lead.socialLinks?.instagram },
     { key: "facebook", url: lead.socialLinks?.facebook },
     { key: "tiktok", url: lead.socialLinks?.tiktok },
   ];
   return `
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-5">
       ${platforms
         .map(({ key, url }) => {
-          const svg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="${SOCIAL_ICON_PATHS[key]}"/></svg>`;
-          return url
-            ? `<a href="${url}" target="_blank" rel="noopener" aria-label="${key}" style="color:${accentColor};" class="hover:opacity-70 transition">${svg}</a>`
-            : `<span aria-hidden="true" style="color:${dimColor}; opacity:0.45;">${svg}</span>`;
+          const svg = `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="${SOCIAL_ICON_PATHS[key]}"/></svg>`;
+          const href = url || FALLBACK_URLS[key];
+          const color = url ? accentColor : dimColor;
+          return `<a href="${href}" target="_blank" rel="noopener" aria-label="${key}" style="color:${color};" class="hover:opacity-75 transition">${svg}</a>`;
         })
         .join("")}
     </div>`;

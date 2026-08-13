@@ -33,19 +33,24 @@ const SOCIAL_ICON_PATHS = {
 };
 
 function socialIconsHtml(lead: Lead, accentColor: string, dimColor: string): string {
+  const FALLBACK_URLS: Record<"instagram" | "facebook" | "tiktok", string> = {
+    instagram: "https://instagram.com",
+    facebook: "https://facebook.com",
+    tiktok: "https://tiktok.com",
+  };
   const platforms: { key: "instagram" | "facebook" | "tiktok"; url?: string }[] = [
     { key: "instagram", url: lead.socialLinks?.instagram },
     { key: "facebook", url: lead.socialLinks?.facebook },
     { key: "tiktok", url: lead.socialLinks?.tiktok },
   ];
   return `
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-5">
       ${platforms
         .map(({ key, url }) => {
-          const svg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="${SOCIAL_ICON_PATHS[key]}"/></svg>`;
-          return url
-            ? `<a href="${url}" target="_blank" rel="noopener" aria-label="${key}" style="color:${accentColor};" class="hover:opacity-75 transition">${svg}</a>`
-            : `<span aria-hidden="true" style="color:${dimColor}; opacity:0.4;">${svg}</span>`;
+          const svg = `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="${SOCIAL_ICON_PATHS[key]}"/></svg>`;
+          const href = url || FALLBACK_URLS[key];
+          const color = url ? accentColor : dimColor;
+          return `<a href="${href}" target="_blank" rel="noopener" aria-label="${key}" style="color:${color};" class="hover:opacity-75 transition">${svg}</a>`;
         })
         .join("")}
     </div>`;
