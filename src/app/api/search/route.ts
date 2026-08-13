@@ -96,7 +96,10 @@ export async function POST(req: NextRequest) {
     const filtered = leads.filter((l) => {
       if (!l.websiteScore.hasWebsite) return includeNoWebsite;
       if (l.websiteScore.score < 75) return includeOutdated;
-      return true;
+      // A well-built, modern website (score >= 75) isn't a lead opportunity
+      // for this tool regardless of either toggle — always exclude it,
+      // rather than letting it slip through unconditionally.
+      return false;
     });
 
     // No-website leads first, then leads with a website — that priority
