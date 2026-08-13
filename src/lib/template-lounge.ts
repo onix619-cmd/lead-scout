@@ -20,6 +20,37 @@ function splitHoursLine(line: string): [string, string] {
 const starsHtml = (count: number) =>
   Array.from({ length: 5 }).map((_, i) => `<span style="color:${i < count ? "#C9A227" : "rgba(255,255,255,0.15)"};">★</span>`).join("");
 
+// Generic, hand-drawn glyphs for Instagram / Facebook / TikTok (not
+// reproductions of the brands' proprietary logo artwork) used for the
+// footer's social row.
+const SOCIAL_ICON_PATHS = {
+  instagram:
+    "M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 2 .3 2.4.5.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1.2.5 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2-.5 2.4-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1.2.4-2.4.5-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2-.3-2.4-.5-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1.2-.5-2.4C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2 .5-2.4.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1.2-.4 2.4-.5C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1 .1-1.6.2-1.9.4-.5.2-.8.4-1.2.8-.4.4-.6.7-.8 1.2-.1.3-.3.9-.4 1.9-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1 .2 1.6.4 1.9.2.5.4.8.8 1.2.4.4.7.6 1.2.8.3.1.9.3 1.9.4 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1-.1 1.6-.2 1.9-.4.5-.2.8-.4 1.2-.8.4-.4.6-.7.8-1.2.1-.3.3-.9.4-1.9.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1-.2-1.6-.4-1.9-.2-.5-.4-.8-.8-1.2-.4-.4-.7-.6-1.2-.8-.3-.1-.9-.3-1.9-.4-1.2-.1-1.6-.1-4.7-.1zm0 4.4a5.6 5.6 0 110 11.2 5.6 5.6 0 010-11.2zm0 1.8a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6zm5.8-2a1.3 1.3 0 110 2.6 1.3 1.3 0 010-2.6z",
+  facebook:
+    "M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.91h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94z",
+  tiktok:
+    "M16.6 5.82c-.9-.95-1.4-2.2-1.4-3.52h-3.1v13.44a3.1 3.1 0 11-2.2-2.97V9.65a6.1 6.1 0 105.3 6.05V9.9a8.1 8.1 0 004.8 1.56V8.36a5.6 5.6 0 01-3.4-2.54z",
+};
+
+function socialIconsHtml(lead: Lead, accentColor: string, dimColor: string): string {
+  const platforms: { key: "instagram" | "facebook" | "tiktok"; url?: string }[] = [
+    { key: "instagram", url: lead.socialLinks?.instagram },
+    { key: "facebook", url: lead.socialLinks?.facebook },
+    { key: "tiktok", url: lead.socialLinks?.tiktok },
+  ];
+  return `
+    <div class="flex items-center gap-4">
+      ${platforms
+        .map(({ key, url }) => {
+          const svg = `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="${SOCIAL_ICON_PATHS[key]}"/></svg>`;
+          return url
+            ? `<a href="${url}" target="_blank" rel="noopener" aria-label="${key}" style="color:${accentColor};" class="hover:opacity-75 transition">${svg}</a>`
+            : `<span aria-hidden="true" style="color:${dimColor}; opacity:0.4;">${svg}</span>`;
+        })
+        .join("")}
+    </div>`;
+}
+
 // A dark-luxury lounge/nightlife template ("lounge") — bold Playfair Display
 // headlines, brass-gold accents on near-black, a recurring "glow rule"
 // signature motif, dynamic menu tabs, and a WhatsApp-powered reservation
@@ -471,6 +502,7 @@ ${galleryImages.length > 0 ? `
         <li>${escapeHtml(lead.address)}</li>
         ${lead.phone ? `<li><a href="tel:${lead.phone}" class="hover:text-gold">${escapeHtml(lead.phone)}</a></li>` : ""}
       </ul>
+      <div class="mt-4">${socialIconsHtml(lead, "#C9A227", "#6B605A")}</div>
     </div>
   </div>
   <div class="max-w-7xl mx-auto px-5 md:px-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-smoke">

@@ -5,6 +5,7 @@ import { generateCoffeeLandingPageHTML } from "./template-coffee";
 import { generateFineDiningHTML } from "./template-fine-dining";
 import { generateFineDiningGoldHTML } from "./template-fine-dining-gold";
 import { generateLoungeHTML } from "./template-lounge";
+import { generateModernCafeBarHTML } from "./template-modern-cafebar";
 
 function waLink(phone: string | null) {
   if (!phone) return null;
@@ -37,7 +38,7 @@ function schemaTypeFor(themeKey: string) {
 // this file is kept only because it's still shared with the icecream/
 // generic themes' styling ternaries; it can no longer actually be reached
 // for restaurants.
-export type TemplateOverride = "restaurant-3" | "restaurant-4" | "lounge" | "coffee" | undefined;
+export type TemplateOverride = "restaurant-3" | "restaurant-4" | "lounge" | "modern-cafebar" | "coffee" | undefined;
 
 export function generateLandingPageHTML(
   lead: Lead,
@@ -56,6 +57,8 @@ export function generateLandingPageHTML(
     return generateFineDiningGoldHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "lounge") {
     return generateLoungeHTML(lead, content, menuSections, originalMenuPhotoUrl);
+  } else if (templateOverride === "modern-cafebar") {
+    return generateModernCafeBarHTML(lead, content, menuSections, originalMenuPhotoUrl);
   } else if (templateOverride === "coffee") {
     themeKey = "coffee";
   } else if (themeKey === "restaurant") {
@@ -595,11 +598,10 @@ ${philosophyImage ? `
   </div>
   <div class="max-w-6xl mx-auto px-6 mt-10 pt-6 flex flex-wrap items-center justify-between gap-3 text-xs" style="border-top:1px solid rgba(255,255,255,0.08); opacity:.6;">
     <span>© ${new Date().getFullYear()} ${escapeHtml(lead.name)}. All rights reserved.</span>
-    <div class="flex items-center gap-4">
-      <a href="${lead.socialLinks?.instagram || "https://instagram.com"}" target="_blank" class="hover:underline flex items-center gap-1">📸 Instagram</a>
-      <a href="${lead.socialLinks?.facebook || "https://facebook.com"}" target="_blank" class="hover:underline flex items-center gap-1">📘 Facebook</a>
-      <a href="${lead.socialLinks?.tiktok || "https://tiktok.com"}" target="_blank" class="hover:underline flex items-center gap-1">🎵 TikTok</a>
-      <a href="#top" class="ml-2">Back to top ↑</a>
+    <div class="flex gap-4">
+      ${lead.socialLinks?.instagram ? `<a href="${lead.socialLinks.instagram}" target="_blank">Instagram</a>` : ""}
+      ${lead.socialLinks?.facebook ? `<a href="${lead.socialLinks.facebook}" target="_blank">Facebook</a>` : ""}
+      <a href="#top">Back to top ↑</a>
     </div>
   </div>
   <p class="text-center text-xs mt-6" style="opacity:.4;">Website mockup generated for demo purposes.</p>

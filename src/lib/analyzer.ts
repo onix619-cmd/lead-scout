@@ -131,12 +131,14 @@ export async function analyzeWebsite(url: string): Promise<WebsiteScore> {
   return { score, hasWebsite: true, checks, suggestions, socialLinks: extractSocialLinks(html) };
 }
 
-export function extractSocialLinks(html: string): { instagram?: string; facebook?: string } {
+export function extractSocialLinks(html: string): { instagram?: string; facebook?: string; tiktok?: string } {
   const instaMatch = html.match(/https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.\/?=&%-]*/i);
   const fbMatch = html.match(/https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9_.\/?=&%-]*/i);
+  const tiktokMatch = html.match(/https?:\/\/(www\.)?tiktok\.com\/[a-zA-Z0-9_.\/?=&%@-]*/i);
   return {
     instagram: instaMatch?.[0],
     facebook: fbMatch?.[0],
+    tiktok: tiktokMatch?.[0],
   };
 }
 

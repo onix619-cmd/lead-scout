@@ -835,6 +835,7 @@ export default function Dashboard() {
                           <option value="restaurant-3">Restaurant — Style 3 (Fine Dining)</option>
                           <option value="restaurant-4">Restaurant — Style 4 (Fine Dining • Gold)</option>
                           <option value="lounge">Lounge / Nightlife</option>
+                          <option value="modern-cafebar">Modern (Coffee Shops & Bars)</option>
                           <option value="coffee">Coffee Shop</option>
                         </select>
                       </div>
