@@ -67,21 +67,7 @@ const CATEGORIES = CATEGORY_GROUPS.flatMap((g) => g.items);
 
 const RADIUS_OPTIONS = [5, 10, 20, 30, 50];
 
-const PROVINCES = [
-  "Alberta",
-  "British Columbia",
-  "Manitoba",
-  "New Brunswick",
-  "Newfoundland and Labrador",
-  "Northwest Territories",
-  "Nova Scotia",
-  "Nunavut",
-  "Ontario",
-  "Prince Edward Island",
-  "Quebec",
-  "Saskatchewan",
-  "Yukon",
-];
+
 
 function getTheme(dark: boolean) {
   return {
@@ -248,7 +234,6 @@ export default function Dashboard() {
           ...(categoryGroup ? { categories: categoryGroup.items } : { category }),
           address,
           radiusKm,
-          province,
           minRating,
           includeNoWebsite,
           includeOutdated,
@@ -527,23 +512,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
-                Province
-              </label>
-              <select
-                value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${t.input}`}
-              >
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <div>
               <label className={`text-xs font-bold uppercase tracking-wide block mb-1 ${t.label}`}>
                 Search radius
