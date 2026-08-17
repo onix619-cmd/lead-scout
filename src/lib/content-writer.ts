@@ -4,7 +4,7 @@ import { detectTemplateType } from "./template-type";
 export type AiProvider = "groq" | "gemini" | "claude";
 
 const MODELS: Record<AiProvider, string> = {
-  groq: "llama-3.3-70b-versatile",
+  groq: "llama-3.1-70b-versatile",
   gemini: "gemini-flash-latest",
   claude: "claude-sonnet-5",
 };
