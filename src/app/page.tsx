@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Lead } from "@/lib/types";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const CATEGORY_GROUPS: { group: string; emoji: string; items: string[] }[] = [
   {
@@ -111,6 +112,13 @@ function getTheme(dark: boolean) {
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const t = getTheme(darkMode);
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem("leadmax_onboarding_done") !== "true") {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   const [category, setCategory] = useState("Restaurants");
   // When set, a combined-search group is active (e.g. "Food Service" ->
@@ -325,6 +333,7 @@ export default function Dashboard() {
 
   return (
     <main className={`min-h-screen ${t.page}`}>
+      {showOnboarding && <OnboardingWizard onComplete={() => setShowOnboarding(false)} />}
       <div className="mx-auto max-w-5xl px-6 py-10">
         <header className="mb-8 flex items-start justify-between gap-4">
           <div>
